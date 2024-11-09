@@ -36,6 +36,7 @@
 unit ZDemo;
 
 interface
+	uses GameVars;
 	var
 		{ Configuration options }
 		DemoFastForward: boolean;
@@ -65,6 +66,11 @@ interface
 	function DemoRestoreRecord(filename: string): boolean;
 	procedure DemoFinalize(stop: boolean);
 	procedure DemoStop(ignoreErrors: boolean);
+	{ The following procedures relate to storing high score data. }
+	procedure DemoAddPlayerName(playerName: TString50);
+	procedure DemoIgnoreKeypresses;
+	procedure DemoReenableKeypresses;
+
 	function DemoIsComplete: boolean;
 	function DemoIsPlaying: boolean;
 	function DemoIsRecording: boolean;
@@ -78,7 +84,7 @@ interface
 	procedure DemoRestartHere;
 
 implementation
-uses Dos, Crt, GameVars, Input, Sounds, FileOps;
+uses Dos, Crt, Input, Sounds, FileOps;
 
 type
 	DemoMode = (
@@ -94,7 +100,8 @@ type
 		DCmdGameStop,							{ End of a finished demo. }
 		DCmdPitTickDelta,					{ ??? }
 		DCmdRestartHere,					{ Restart the main gameplay loop as if the game was just started. }
-		DCmdNewSavegameName				{ Register a new savegame name, updating LastSaveName. (See below.)}
+		DCmdNewSavegameName,			{ Register a new savegame name, updating LastSaveName. (See below.)}
+		DCmdPlayerName						{ Register the player name for a high score entry. }
 	);
 	DemoFetchMode = (
 		DFetchAny,
@@ -140,6 +147,9 @@ type
 		DCmdNewSavegameName: (
 			NewSaveName: string[20]
 		);
+		DCmdPlayerName: (
+			PlayerName: TString50
+		);
 	end;
 
 const
@@ -148,16 +158,17 @@ const
 	DEMO_BUFFER_SIZE = 512;
 	DEMO_COMMAND_OPTIONAL = $01;
 	DEMO_COMMAND_VARLEN = $80;
-	DemoCommandLengths: array[DCmdInput .. DCmdNewSavegameName] of byte = (
+	DemoCommandLengths: array[DCmdInput .. DCmdPlayerName] of byte = (
 		7,
 		5,
 		7,
 		1,
 		3,
 		1,
-		22
+		22,
+		52
 	);
-	DemoCommandFlags: array[DCmdInput .. DCmdNewSavegameName] of byte = (
+	DemoCommandFlags: array[DCmdInput .. DCmdPlayerName] of byte = (
 		0,
 		{ Should DCmdReseedCurrentTick really be optional? It advances
 		  the state of the RNG after all. }
@@ -166,6 +177,7 @@ const
 		0,
 		DEMO_COMMAND_OPTIONAL,
 		0,
+		DEMO_COMMAND_OPTIONAL,
 		DEMO_COMMAND_OPTIONAL
 	);
 var
@@ -180,6 +192,7 @@ var
 	DemoLogFile: text;
 	DemoLogActive: boolean;
 	DemoLogBoard: integer;
+	DemoDoIgnoreKeypresses: boolean;
 
 procedure DemoFlushFile(var f: text);
 	var
@@ -351,6 +364,7 @@ function DemoStartRecord(filename, extension: string): boolean;
 		cmd: DemoCommand;
 	begin
 		DemoStartRecord := false;
+		DemoDoIgnoreKeypresses := false;
 
 		hdr.Magic := DEMO_MAGIC;
 		hdr.Version := DEMO_VERSION;
@@ -417,6 +431,7 @@ function DemoStartPlay(filename, extension: string): boolean;
 
 		DemoSetMode(DModePlay);
 		DemoStartPlay := true;
+		DemoDoIgnoreKeypresses := false;
 		FullDemoFilename := filename + extension;
 
 		if not DemoFetchCommand(cmd, DCmdGameStart, DFetchExpected) then exit;
@@ -501,6 +516,7 @@ function DemoResumeRecord(filename, extension: string): boolean;
 		DemoResumeRecord := true;
 
 		DemoSetMode(DModeRecord);
+		DemoDoIgnoreKeypresses := false;
 		FullDemoFilename := filename + extension;
 
 		{ Append a DCmdRestartHere event since we just restored a game. }
@@ -638,7 +654,34 @@ procedure DemoStop(ignoreErrors: boolean);
 			end;
 			DemoCurrentMode := DModeNone;
 		end;
-	end;		
+	end;
+
+procedure DemoAddPlayerName(playerName: TString50);
+	var
+		cmd: DemoCommand;
+	begin
+		cmd.cmdType := DCmdPlayerName;
+		cmd.playerName := playerName;
+		DemoAppendCommand(cmd);
+	end;
+
+{ We need to keep recording while the player inputs their name for the high
+	score, to store that player name as part of the demo. However, whether the
+	actual high score dialog appears at the end of a playthrough depends on factors
+	we don't know about; thus we can't guarantee that it will, and thus we shouldn't
+	record the keypresses the player used when inputting their score, because it
+	will desynchronize if the high score box doesn't show later. That's what these
+	procedures are for: to disable input recording while in recording mode. }
+
+procedure DemoIgnoreKeypresses;
+	begin
+		DemoDoIgnoreKeypresses := true;
+	end;
+
+procedure DemoReenableKeypresses;
+	begin
+		DemoDoIgnoreKeypresses := false;
+	end;
 
 {$IFDEF FPC}
 procedure Sti;
@@ -753,7 +796,7 @@ procedure DemoInputUpdate(expectedPitCount: word; isGameplaySensitive: boolean);
 		end;
 
 		{ Recording mode. }
-		if DemoCurrentMode = DModeRecord then begin
+		if (DemoCurrentMode = DModeRecord) and (not DemoDoIgnoreKeypresses) then begin
 
 			{ Update the demo pit counter??? }
 			if isGameplaySensitive or DemoInputNonZero then begin

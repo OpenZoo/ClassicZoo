@@ -40,7 +40,7 @@ interface
 	function EditorSelectBoard(title: string; currentBoard: integer; titleScreenIsNone: boolean): integer;
 
 implementation
-uses Dos, Crt, Video, Sounds, Input, Elements, Oop, Game;
+uses Dos, Crt, Video, Sounds, Input, Elements, Oop, Game, ZDemo;
 
 type
 	TDrawMode = (DrawingOff, DrawingOn, TextEntry);
@@ -1042,6 +1042,11 @@ procedure HighScoresAdd(score: integer);
 		name: TString50;
 		i, listPos: integer;
 	begin
+		{ Don't record the player inputting their name as we can't
+		  be sure the box will show up next time. }
+		if DemoIsRecording then
+			DemoIgnoreKeypresses;
+
 		listPos := 1;
 		while (listPos <= HIGH_SCORE_COUNT) and (score < HighScoreList[listPos].Score) do
 			listPos := listPos + 1;
@@ -1062,10 +1067,16 @@ procedure HighScoresAdd(score: integer);
 			HighScoreList[listPos].Name := name;
 			HighScoresSave;
 
+			if DemoIsRecording then
+				DemoAddPlayerName(name);
+
 			TextWindowDrawClose(textWindow);
 			TransitionDrawToBoard;
 			TextWindowFree(textWindow);
 		end;
+
+		if DemoIsRecording then
+			DemoReenableKeypresses;
 	end;
 
 function EditorGetBoardName(boardId: integer; titleScreenIsNone: boolean): TString50;

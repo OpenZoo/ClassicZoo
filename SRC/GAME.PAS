@@ -1822,8 +1822,6 @@ procedure GamePlayLoop(boardChanged: boolean);
 
 		until (exitLoop or GamePlayExitRequested) and GamePlayExitRequested;
 
-		DemoStop(false);
-
 		SoundClearQueue;
 
 		if GameStateElement = E_PLAYER then begin
@@ -1833,6 +1831,8 @@ procedure GamePlayLoop(boardChanged: boolean);
 		end else if GameStateElement = E_MONITOR then begin
 			SidebarClearLine(5);
 		end;
+
+		DemoStop(false);
 
 		Board.Tiles[Board.Stats[0].X][Board.Stats[0].Y].Element := E_PLAYER;
 		Board.Tiles[Board.Stats[0].X][Board.Stats[0].Y].Color := ElementDefs[E_PLAYER].Color;
