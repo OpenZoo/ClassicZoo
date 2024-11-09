@@ -40,6 +40,7 @@ interface
 		VideoTextSegment: word;
 		VideoTextPointer: pointer;
 		VideoCursorVisible: boolean;
+		Headless: boolean;
 	function VideoConfigure: boolean;
 	procedure VideoInstall(columns, borderColor: integer);
 	procedure VideoUninstall;
@@ -311,6 +312,10 @@ procedure VideoWriteTextBW40(x, y, color: byte; text: TVideoLine);
 		);
 	end;
 
+procedure VideoWriteTextHeadless(x, y, color: byte; text: TVideoLine);
+	begin
+	end;
+
 {$F-}
 
 function VideoConfigure: boolean;
@@ -341,6 +346,11 @@ procedure VideoInstall(columns, borderColor: integer);
 	var
 		regs: Registers;
 	begin
+		if Headless then begin
+			VideoWriteText := VideoWriteTextHeadless;
+			Exit;
+		end;
+
 		regs.AX := $1201;
 		regs.BL := $30;
 		Intr($10, regs);
@@ -349,6 +359,7 @@ procedure VideoInstall(columns, borderColor: integer);
 			TextBackground(borderColor);
 
 		VideoColumns := columns;
+
 		if VideoMonochrome then begin
 			if LastMode in [0, 1, 2, 3] then begin
 				if columns = 80 then begin
@@ -384,6 +395,9 @@ procedure VideoUninstall;
 	var
 		regs: Registers;
 	begin
+		if Headless then
+			Exit;
+
 		regs.AX := $1201;
 		regs.BL := $30;
 		Intr($10, regs);
@@ -408,12 +422,16 @@ procedure VideoSetCursorShape(value: integer);
 
 procedure VideoShowCursor;
 	begin
+		if Headless then Exit;
+
 		VideoSetCursorShape($0607);
 		VideoCursorVisible := true;
 	end;
 
 procedure VideoHideCursor;
 	begin
+		if Headless then Exit;
+
 		VideoSetCursorShape($2000);
 		VideoCursorVisible := false;
 	end;
@@ -450,4 +468,5 @@ begin
 	end;
 	VideoTextPointer := Ptr(VideoTextSegment, $0000);
 	VideoCursorVisible := true;
+	Headless := false;
 end.

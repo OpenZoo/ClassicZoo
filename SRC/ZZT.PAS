@@ -93,6 +93,9 @@ procedure GameConfigure;
 
 		ParsingConfigFile := false;
 
+		if Headless then
+			Exit;
+
 		Window(1, 1, 80, 25);
 		TextBackground(Black);
 		ClrScr;
@@ -140,6 +143,9 @@ procedure GameConfigure;
 	end;
 
 begin
+{$IFDEF ZDEMOVAL}
+	Headless := True;
+{$ENDIF}
 	WorldFileDescCount := 7;
 	WorldFileDescKeys[1] := 'TOWN';
 	WorldFileDescValues[1] := 'TOWN       The Town of ZZT';
@@ -174,8 +180,10 @@ begin
 		TextWindowInit(5, 3, 50, 18);
 		New(IoTmpBuf);
 
-		VideoHideCursor;
-		ClrScr;
+		if not Headless then begin
+			VideoHideCursor;
+			ClrScr;
+		end;
 
 		TickSpeed := 4;
 		DebugEnabled := false;
@@ -199,7 +207,8 @@ begin
 	VideoUninstall;
 	Port[PORT_CGA_PALETTE] := 0;
 	TextAttr := InitialTextAttr;
-	ClrScr;
+	
+	if not Headless then ClrScr;
 
 {$IFDEF ZDEMOVAL}
 	Writeln('The player got ', DemoScore, ' points.');
