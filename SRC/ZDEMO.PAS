@@ -51,6 +51,7 @@ interface
 		DemoPitTicksFirst: longint;
 		DemoPitTicksLast: longint;
 		DemoStartSeed: longint;
+		DemoScore: word;
 		{ File data }
 		FullDemoFilename: string;
 		FullDemoLogFilename: string;
@@ -70,6 +71,8 @@ interface
 	procedure DemoAddPlayerName(playerName: TString50);
 	procedure DemoIgnoreKeypresses;
 	procedure DemoReenableKeypresses;
+
+	function DemoGetWorldName: string;
 
 	function DemoIsComplete: boolean;
 	function DemoIsPlaying: boolean;
@@ -193,6 +196,7 @@ var
 	DemoLogActive: boolean;
 	DemoLogBoard: integer;
 	DemoDoIgnoreKeypresses: boolean;
+	WorldName: string[20]; { ditto }
 
 procedure DemoFlushFile(var f: text);
 	var
@@ -297,7 +301,7 @@ function DemoFetchCommand(var cmd: DemoCommand; expectedType: DemoCommandType; f
 		end else begin
 			{ If the fetched command is optional, fetch another command. }
 			{ If the expected command is optional, unfetch all and return. }
-			{ If the fetched command is GameStop, sto. }
+			{ If the fetched command is GameStop, stop. }
 			{ Otherwise, fail. }
 			if (DemoCommandFlags[cmd.cmdType] and DEMO_COMMAND_OPTIONAL) <> 0 then
 				goto FetchNext
@@ -374,6 +378,8 @@ function DemoStartRecord(filename, extension: string): boolean;
 		hdr.EngineName := DemoEngineName;
 		hdr.OrigDemoName := filename;
 
+		WorldName := hdr.WorldName;
+
 		Assign(DemoFile, filename + extension);
 		Rewrite(DemoFile, 1);
 		if IOResult <> 0 then begin
@@ -428,6 +434,7 @@ function DemoStartPlay(filename, extension: string): boolean;
 		end;
 
 		DemoFileSize := FileSize(DemoFile);
+		WorldName := hdr.WorldName;
 
 		DemoSetMode(DModePlay);
 		DemoStartPlay := true;
@@ -487,6 +494,7 @@ function DemoResumeRecord(filename, extension: string): boolean;
 		end;
 
 		DemoFileSize := FileSize(DemoFile);
+		WorldName := hdr.WorldName;
 
 		{ Now "play through" the demo to set the random seed and other
 			game-specific variables so the game state will match up.  }
@@ -638,6 +646,10 @@ procedure DemoStop(ignoreErrors: boolean);
 			DemoFinalize(true);
 		end;
 
+		{ Not sure why putting this inside DModePlay doesn't work. -KM }
+		if DemoCurrentMode <> DModeNone then
+			DemoScore := World.Info.Score;
+
 		if DemoCurrentMode = DModePlay then begin
 			if not ignoreErrors then begin
 				{ TODO: Catch this case better? }
@@ -681,6 +693,11 @@ procedure DemoIgnoreKeypresses;
 procedure DemoReenableKeypresses;
 	begin
 		DemoDoIgnoreKeypresses := false;
+	end;
+
+function DemoGetWorldName: string;
+	begin
+		DemoGetWorldName := WorldName;
 	end;
 
 {$IFDEF FPC}

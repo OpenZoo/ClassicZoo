@@ -201,6 +201,11 @@ begin
 	TextAttr := InitialTextAttr;
 	ClrScr;
 
+{$IFDEF ZDEMOVAL}
+	Writeln('The player got ', DemoScore, ' points.');
+
+	ExitCode := World.Info.Score;
+{$ELSE}
 	if Length(ConfigRegistration) = 0 then begin
 		GamePrintRegisterMessage;
 	end else begin
@@ -208,6 +213,7 @@ begin
 		Writeln('  Registered version -- Thank you for playing %NAME%.');
 		Writeln;
 	end;
+{$ENDIF}
 
 	VideoShowCursor;
 end.

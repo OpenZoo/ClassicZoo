@@ -1894,9 +1894,16 @@ procedure GameValidateRun;
 		DemoStopOnEndgame := false;
 		SoundEnabled := false;
 
+		{ We'll return the player's score as the exit code (error level).
+		  If the demo can't be played, that's zero points. }
+
+		ExitCode := 0;
+
 		if DemoStartPlay(StartupWorldFileName, '.ZZD') then begin
 			if DemoStartLogging(StartupWorldFileName, '.ZZL') then begin
-				if WorldLoad(StartupWorldFileName, '.ZZT', false) then begin
+				{ TODO: If the world doesn't exist, then exit straight away,
+			 	  don't play back a demo on the IO error screen.}
+				if WorldLoad(DemoGetWorldName, '.ZZT', false) then begin
 					ReturnBoardId := World.Info.CurrentBoard;
 
 					GameStateElement := E_PLAYER;
