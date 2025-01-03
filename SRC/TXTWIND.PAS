@@ -162,11 +162,11 @@ procedure TextWindowPromptFilename(title: TString50; var filename: TFilenameStri
 		SidebarClearLine(4);
 		SidebarClearLine(5);
 
-		VideoWriteText(63, 3, $1F, title);
-		VideoWriteText(63, 5, $0F, '            ');
+		VideoWriteText(VideoSidebarX + 3, 3, $1F, title);
+		VideoWriteText(VideoSidebarX + 3, 5, $0F, '            ');
 
 		filename := '';
-		PromptString(63, 5, $1E, $0F, 12, 128, PROMPT_ANY, filename);
+		PromptString(VideoSidebarX + 3, 5, $1E, $0F, 12, 128, PROMPT_ANY, filename);
 
 		SidebarClearLine(3);
 		SidebarClearLine(4);
@@ -864,9 +864,9 @@ procedure TextWindowEdit(var state: TTextWindowState; extension: TExtensionStrin
 			TextWindowDrawTitle($1E, state.Title);
 			repeat
 				if insertMode then
-					VideoWriteText(75, 12, $1E, 'on ')
+					VideoWriteText(VideoSidebarX + 15, 12, $1E, 'on ')
 				else
-					VideoWriteText(75, 12, $1E, 'off');
+					VideoWriteText(VideoSidebarX + 15, 12, $1E, 'off');
 
 				ClampCharPos;
 				shiftHeld := false;
@@ -889,7 +889,7 @@ procedure TextWindowEdit(var state: TTextWindowState; extension: TExtensionStrin
 					end;
 {$IFNDEF WIDECHAR}
 					KEY_F10: begin
-						SidebarPromptCharacter(true, 63, 3, 'Character?', inputByte);
+						SidebarPromptCharacter(true, VideoSidebarX + 3, 3, 'Character?', inputByte);
 						InsertCharacter(Chr(inputByte));
 						SidebarClearLine(3);
 						SidebarClearLine(4);
@@ -1018,7 +1018,7 @@ procedure TextWindowEdit(var state: TTextWindowState; extension: TExtensionStrin
 								TextWindowFreeEdit(state);
 								TextWindowOpenFile('*' + textFilename, state, true, true);
 							end else begin
-								VideoWriteText(63, 4, $1E, 'File not found!');
+								VideoWriteText(VideoSidebarX + 3, 4, $1E, 'File not found!');
 								PauseOnError;
 								SidebarClearLine(4);
 							end;
@@ -1202,7 +1202,7 @@ procedure TextWindowOpenFile(filename: TFilenameString; var state: TTextWindowSt
 			if entryPos <= 0 then begin
 			{$IFDEF EDITOR}
 				if showError and (not FileExists(filename)) then begin
-					VideoWriteText(63, 4, $1E, 'File not found!');
+					VideoWriteText(VideoSidebarX + 3, 4, $1E, 'File not found!');
 					PauseOnError;
 					exit;
 				end;

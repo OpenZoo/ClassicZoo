@@ -12,6 +12,8 @@ $< ClassicZoo dev >
   crashes:
   / Monitor zero
   / Player zero
+/ Fixed visual issues rendering the
+  text editor sidebar in SUPERZ.
 
 $< ClassicZoo 4.39 >
 
