@@ -137,6 +137,7 @@ function GameVideoInstall(videoMode, mode: integer): boolean;
 
 {$IFNDEF NEC98}
 {$IFNDEF BASICSYS}
+{$IFNDEF DSX86}
 		if UseCustomFont then
 			fileDataLen := ResourceDataReadBinaryFile('8X8.CHR', fileData, 0, 2048)
 		else
@@ -147,6 +148,7 @@ function GameVideoInstall(videoMode, mode: integer): boolean;
 			FreeMem(fileData, fileDataLen); 
 			if viResult then goto GameVideoInstalled;
 		end;
+{$ENDIF}
 {$ENDIF}
 {$ENDIF}
 
@@ -180,6 +182,8 @@ GameVideoInstalled:
 {$ENDIF}
 			BOARD_DRAW_WIDTH := 24;
 			BOARD_DRAW_HEIGHT := 20;
+
+			BOARD_DRAW_Y := (VideoRows - BOARD_DRAW_HEIGHT) div 2;
 {$IFDEF EDITOR}
 			if mode = VIEW_EDITOR then begin
 				BOARD_DRAW_X := ((VideoColumns - 20 - BOARD_DRAW_WIDTH) div 2);
@@ -188,7 +192,6 @@ GameVideoInstalled:
 				BOARD_DRAW_X := 12 + ((VideoColumns - 12 - BOARD_DRAW_WIDTH) div 2);
 {$IFDEF EDITOR}
 			end;
-			BOARD_DRAW_Y := (VideoRows - BOARD_DRAW_HEIGHT) div 2;
 		end;
 {$ENDIF}
 		BOARD_DRAW_OX_MAX := BOARD_WIDTH - BOARD_DRAW_WIDTH + 1;
@@ -1366,6 +1369,7 @@ procedure GamePlayLoop(isTitle: boolean);
 
 		TickTimeDuration := TickSpeed * 2;
 		GamePlayExitRequested := false;
+		GameControllerHasTicked := true;
 		exitLoop := false;
 
 		CurrentTick := ZRandom(100);
@@ -1431,6 +1435,7 @@ procedure GamePlayLoop(isTitle: boolean);
 
 					{ Unpause }
 					GamePaused := false;
+					GameControllerHasTicked := true;
 					CurrentTick := ZRandom(100);
 					CurrentStatTicked := Board.StatCount + 1;
 					World.Info.IsSave := true;
@@ -1454,6 +1459,17 @@ procedure GamePlayLoop(isTitle: boolean);
 
 			if (CurrentStatTicked > Board.StatCount) and not GamePlayExitRequested then begin
 				{ all stats ticked }
+				if not GameControllerHasTicked then begin
+					if GameStateElement = E_MONITOR then begin
+						ElementMonitorTick(-1);
+					end else begin
+						case UpCase(InputKeyPressed) of KEY_ESCAPE, 'Q': begin
+							GamePromptEndPlay;
+						end; end;
+					end;
+				end;
+				GameControllerHasTicked := true;
+
 				if SoundHasTimeElapsed(TickTimeCounter, TickTimeDuration) then begin
 					InputUpdate;
 					if (GameStateELement = E_PLAYER) and NeuromotorAssist and (InputKeyPressed = #0) then begin

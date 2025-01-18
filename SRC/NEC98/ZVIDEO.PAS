@@ -214,7 +214,7 @@ procedure VideoDrawFromBackingBuffer(x, y: byte; textLength: integer);
 					newGlyphCode := $7600 or ((newGlyphCode and 1) shl 8) or (newGlyphCode shr 8);
 				end else if ((newGlyphCode and $F0) = $00) then begin
 					doubleWideGlyph := not ((newGlyphCode and $FC) = $08);
-					newGlyphCode := (newGlyphCode shl 8) or (newGlyphCode shr 8) or $2000;
+					newGlyphCode := ((newGlyphCode shl 8) or (newGlyphCode shr 8)) + $2000;
 				end;
 
 				if (i = 1) or (glyphCode <> newGlyphCode) then begin
@@ -368,7 +368,7 @@ procedure VideoWriteTextWide(x, y, color: byte; text: TVideoLine);
 		offset := (y * VideoColumns + x) * 2;
 {$IFDEF PC98VBUF}
 		if VideoBackingBufferPresent then begin
-			while i <= Length(text) do begin
+			while (i <= Length(text)) or doubleByte do begin
 				VideoBackingBuffer^[offset] := FetchPC98Word;
 				Inc(offset);
 				VideoBackingBuffer^[offset] := color;
@@ -383,18 +383,13 @@ procedure VideoWriteTextWide(x, y, color: byte; text: TVideoLine);
 		if ((color and $70) shr 4) = (color and $0F) then begin
 			{ Same color. }
 			attr := ATTR_NEC98_MAP[color and $70];
-			while i <= Length(text) do begin
-				MemW[$A000:offset] := FetchPC98Word;
-				MemW[$A200:offset] := attr;
-				Inc(offset, 2);
-			end;
 		end else begin
 			attr := ATTR_NEC98_MAP[color and $7F] or (((color and $80) shr 6) and VideoBlinkMask);
-			while i <= Length(text) do begin
-				MemW[$A000:offset] := FetchPC98Word;
-				MemW[$A200:offset] := attr;
-				Inc(offset, 2);
-			end;
+		end;
+		while (i <= Length(text)) or doubleByte do begin
+			MemW[$A000:offset] := FetchPC98Word;
+			MemW[$A200:offset] := attr;
+			Inc(offset, 2);
 		end;
 	end;
 

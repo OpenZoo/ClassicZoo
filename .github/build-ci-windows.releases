@@ -1,4 +1,2 @@
 -a fpc-x86_64-win64-sdl2 -d EXTCHEAT -d DEBUGWND -d EDITOR -d FASTVID -d AUD16BIT -d WEBBROW -d UISCBACK -d PLAYSTEP -o zztwin64.zip -p build.properties
 -a fpc-x86_64-win64-sdl2 -d EXTCHEAT -d DEBUGWND -d EDITOR -d FASTVID -d AUD16BIT -d WEBBROW -d UISCBACK -d PLAYSTEP -e SUPERZ -n SUPERZ -o zztwin64.zip -p build.properties
--a fpc-x86_64-linux-sdl2 -d EXTCHEAT -d DEBUGWND -d EDITOR -d FASTVID -d AUD16BIT -d WEBBROW -d UISCBACK -d PLAYSTEP -o zztlin64.zip -p build.properties
--a fpc-x86_64-linux-sdl2 -d EXTCHEAT -d DEBUGWND -d EDITOR -d FASTVID -d AUD16BIT -d WEBBROW -d UISCBACK -d PLAYSTEP -e SUPERZ -n SUPERZ -o zztlin64.zip -p build.properties

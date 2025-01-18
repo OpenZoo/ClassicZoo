@@ -1,0 +1,2 @@
+-a fpc-native_aarch64-linux-sdl2 -d EXTCHEAT -d DEBUGWND -d EDITOR -d FASTVID -d AUD16BIT -d WEBBROW -d UISCBACK -d PLAYSTEP -o zztlina64.zip -p build.properties
+-a fpc-native_aarch64-linux-sdl2 -d EXTCHEAT -d DEBUGWND -d EDITOR -d FASTVID -d AUD16BIT -d WEBBROW -d UISCBACK -d PLAYSTEP -e SUPERZ -n SUPERZ -o zztlina64.zip -p build.properties

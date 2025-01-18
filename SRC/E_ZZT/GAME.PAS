@@ -1,4 +1,4 @@
-	{
+{
 	Copyright (c) 2020 Adrian Siekierka
 
 	Based on a reconstruction of code from ZZT,
@@ -1154,6 +1154,7 @@ procedure GamePlayLoop(boardChanged: boolean);
 
 		TickTimeDuration := TickSpeed * 2;
 		GamePlayExitRequested := false;
+		GameControllerHasTicked := true;
 
 		CurrentTick := ZRandom(100);
 		CurrentStatTicked := Board.StatCount + 1;
@@ -1217,8 +1218,15 @@ procedure GamePlayLoop(boardChanged: boolean);
 						DrawPlayerSurroundings(Board.Stats[0].X - InputDeltaX, Board.Stats[0].Y - InputDeltaY, 0);
 					end;
 
+					{ Fix bug where the unpause movement is not taken into account for SPACE. }
+					if (InputDeltaX <> 0) or (InputDeltaY <> 0) then begin
+						PlayerDirX := InputDeltaX;
+						PlayerDirY := InputDeltaY;
+					end;
+
 					{ Unpause }
 					GamePaused := false;
+					GameControllerHasTicked := true;
 					SidebarClearLine(5);
 					CurrentTick := ZRandom(100);
 					CurrentStatTicked := Board.StatCount + 1;
@@ -1242,8 +1250,20 @@ procedure GamePlayLoop(boardChanged: boolean);
 
 			if ((CurrentStatTicked > Board.StatCount)) and not GamePlayExitRequested then begin
 				{ all stats ticked }
+				if not GameControllerHasTicked then begin
+					if GameStateElement = E_MONITOR then begin
+						ElementMonitorTick(-1);
+					end else begin
+						case UpCase(InputKeyPressed) of KEY_ESCAPE, 'Q': begin
+							GamePromptEndPlay;
+						end; end;
+					end;
+				end;
+				GameControllerHasTicked := true;
+
 				if SoundHasTimeElapsed(TickTimeCounter, TickTimeDuration) then begin
 					InputUpdate;
+					GameControllerHasTicked := false;
 
 					{ This is here, as to not break ElementMonitorTick. }
 					if GameStateElement = E_MONITOR then begin

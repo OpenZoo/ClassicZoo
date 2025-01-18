@@ -8,15 +8,59 @@ Legend:
 
 $< ClassicZoo dev >
 
+/ Fixed the following Crashopedia
+  crashes:
+  / Monitor zero
+  / Player zero
+/ [SDL2] Fixed crashes on launch on
+  certain system configurations.
+/ Fixed visual issues rendering the
+  text editor sidebar in SUPERZ.
+
+$< ClassicZoo 4.39 >
+
+/ Fixed the following Crashopedia
+  crashes, and added appropriate
+  checks for ZZT 3.2 compatibility:
+  / Dead smiley
+  / Duplicate transport
+  / Everzap player clone
+/ Fixed cheats and other options being
+  randomly initialized on start.
+
+$< ClassicZoo 4.38 >
+
+/ [SDL2] Fixed the built-in Museum of
+  ZZT browser's search functionality.
+/ {ZZT} Fixed bug where the on-unpause
+  player movement was not taken into
+  account for handling SPACE shooting. 
+
+$< ClassicZoo 4.37 >
+
+/ Fixed configuration option list bug.
+
+$< ClassicZoo 4.36 >
+
 + New cheats:
   + ?(NO)SHOOT - toggle enemy bullets.
   + ?(NO)STAR - toggle enemy stars.
++ New build: DSx86 - dedicated build for
+  the DSx86 emulator. 
 + Editor improvements.
   / Fixed the paste preview rectangle
     being too large by one row/column.
+* [SDL2] Reduced default audio volume
+  considerably.
+* [Windows] Updated SDL2 to 2.24.2.
 * ?SPEED now uses the 1-9 range instead
   of 0-8.
+/ SZRUN now renders board correctly.
 / [DOS] Improve joystick compatibility.
+/ [PC-9801] Widechar drawing fixes.
+  (GreaseMonkey)
+/ [SDL2] Fixed high score loading.
+/ Fixed high score saving.
 
 $< ClassicZoo 4.35 >
 

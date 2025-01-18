@@ -1,0 +1,2 @@
+-a fpc-native_aarch64-darwin-sdl2 -d EXTCHEAT -d DEBUGWND -d EDITOR -d FASTVID -d AUD16BIT -d WEBBROW -d UISCBACK -d PLAYSTEP -o zztmaca64.zip -p build.properties
+-a fpc-native_aarch64-darwin-sdl2 -d EXTCHEAT -d DEBUGWND -d EDITOR -d FASTVID -d AUD16BIT -d WEBBROW -d UISCBACK -d PLAYSTEP -e SUPERZ -n SUPERZ -o zztmaca64.zip -p build.properties

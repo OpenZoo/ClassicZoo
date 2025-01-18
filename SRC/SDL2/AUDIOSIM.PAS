@@ -64,6 +64,7 @@ const
 	SAMPLES_PER_DRUM = 48;
 	SAMPLES_NOTE_DELAY = 16;
 var
+	AudioSampleVolume: byte;
 	AudioSampleMin, AudioSampleNone, AudioSampleMax: TAudioSample;
 	AudioSimNoteTo: TAudioSimNoteToProc;
 	CurrentNote: Int32;
@@ -73,16 +74,16 @@ var
 
 function AudioGetVolume: byte;
 	begin
-{$IFDEF AUD16BIT}
-		AudioGetVolume := AudioSampleMax div 256;
-{$ELSE}
-		AudioGetVolume := AudioSampleMax - 128;
-{$ENDIF}
+		AudioGetVolume := AudioSampleVolume;
 	end;
 
 procedure AudioSetVolume(volume: byte);
 	begin
 		if volume > 127 then volume := 127;
+		AudioSampleVolume := volume;
+
+		volume := volume shr 2;
+
 {$IFDEF AUD16BIT}
 		AudioSampleNone := 0;
 		AudioSampleMin := -(volume * 256);

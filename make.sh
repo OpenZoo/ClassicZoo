@@ -17,6 +17,9 @@ PLATFORM_UNIT=DOS
 EXTMEM_STUB=
 DEBUG_BUILD=
 NATIVE_TOOLS_BUILD=
+TPC_ARGS=""
+FPC_ARGS=""
+NATIVE_BUILD=
 
 # Parse arguments
 
@@ -41,6 +44,17 @@ while getopts "a:d:e:n:o:p:rg" opt; do
 		case "$ARCH" in
 		native)
 			FPC_BINARY=fpc
+			NATIVE_BUILD=yes
+			;;
+		native_x86_64)
+			FPC_BINARY=fpc
+			FPC_ARGS="$FPC_ARGS"' '"-Px86_64"
+			NATIVE_BUILD=yes
+			;;
+		native_aarch64)
+			FPC_BINARY=fpc
+			FPC_ARGS="$FPC_ARGS"' '"-Paarch64"
+			NATIVE_BUILD=yes
 			;;
 		i8086)
 			FPC_BINARY=ppcross8086
@@ -58,6 +72,12 @@ while getopts "a:d:e:n:o:p:rg" opt; do
 #			FPC_BINARY=ppcx64
 #			if [ ! -x "$(command -v $FPC_BINARY)" ]; then
 				FPC_BINARY=ppcrossx64
+#			fi
+			;;
+		aarch64)
+#			FPC_BINARY=ppca64
+#			if [ ! -x "$(command -v $FPC_BINARY)" ]; then
+				FPC_BINARY=ppcrossa64
 #			fi
 			;;
 		arm)
@@ -123,8 +143,6 @@ else
 fi
 
 # Populate TPC_ARGS and FPC_ARGS.
-TPC_ARGS=""
-FPC_ARGS=""
 if [ -z "$DEBUG_BUILD" ]; then
 	TPC_ARGS='/$D- /$L- /$S-'
 fi
@@ -191,13 +209,14 @@ if [ -z "$FPC_LIBRARY_PATH" ]; then
 	FPC_LIBRARY_PATH="$FPC_PATH"/lib
 fi
 
-sed -i -e 's#%COMPARGS%#'"$TPC_ARGS"'#g' "$TEMP_PATH"/BUILD.BAT
-sed -i -e 's#%ENGINE%#'"$ENGINE"'#g' "$TEMP_PATH"/BUILD.BAT
+sed -i -e 's#%COMPARGS%#'"$TPC_ARGS"'#g' \
+       -e 's#%ENGINE%#'"$ENGINE"'#g' "$TEMP_PATH"/BUILD.BAT
 sed -i -e 's#%ENGINE%#'"$ENGINE"'#g' "$TEMP_PATH"/RUNTOOLS.BAT
 sed -i -e 's#%FPC_PATH%#'"$FPC_BINARY_PATH"'#g' "$TEMP_PATH"/SYSTEM/fpc.datpack.cfg
 for i in `ls "$TEMP_PATH"/SYSTEM/fpc.*.cfg`; do
-	sed -i -e 's#%FPC_PATH%#'"$FPC_BINARY_PATH"'#g' "$i"
-	sed -i -e 's#%FPC_LIBRARY_PATH%#'"$FPC_LIBRARY_PATH"'#g' "$i"
+	sed -i -e 's#%FPC_PATH%#'"$FPC_BINARY_PATH"'#g' \
+	       -e 's#%FPC_LIBRARY_PATH%#'"$FPC_LIBRARY_PATH"'#g' \
+	       -e 's#%HOME%#'"$HOME"'#g' "$i"
 done
 echo "Compiling Pascal code..."
 
@@ -282,6 +301,10 @@ if [ -n "$FREE_PASCAL" ]; then
 	cp SRC/E_"$ENGINE"/*.INC SRC/ 2>/dev/null
 
 	cd SRC
+	if [ -n "$NATIVE_BUILD" ]; then
+		mv fpc.cfg fpc2.cfg
+		FPC_ARGS="$FPC_ARGS"' '"@fpc2.cfg"
+	fi
 	echo "[ Building ZZT.EXE ]"
 	"$FPC_BINARY_PATH"/bin/"$FPC_BINARY" $FPC_ARGS ZZT.PAS
 	if [ -f ZZT.exe ]; then

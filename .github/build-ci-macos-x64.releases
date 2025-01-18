@@ -1,0 +1,2 @@
+-a fpc-native_x86_64-darwin-sdl2 -d EXTCHEAT -d DEBUGWND -d EDITOR -d FASTVID -d AUD16BIT -d WEBBROW -d UISCBACK -d PLAYSTEP -o zztmacx64.zip -p build.properties
+-a fpc-native_x86_64-darwin-sdl2 -d EXTCHEAT -d DEBUGWND -d EDITOR -d FASTVID -d AUD16BIT -d WEBBROW -d UISCBACK -d PLAYSTEP -e SUPERZ -n SUPERZ -o zztmacx64.zip -p build.properties

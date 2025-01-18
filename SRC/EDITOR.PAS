@@ -2874,6 +2874,9 @@ procedure HighScoresAdd(score: integer);
 			name := '';
 			PopupPromptString('Congratulations!  Enter your name:', name, MAX_HIGH_SCORE_NAME_LENGTH);
 {$ENDIF}
+                        HighScoreList[listPos].Name := name;
+                        HighScoresSave;
+
 			TextWindowDrawClose(textWindow);
 			TransitionDrawToBoard;
 			TextWindowFree(textWindow);

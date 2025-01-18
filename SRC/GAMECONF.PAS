@@ -396,7 +396,11 @@ procedure ConfigVideoBlinkSetValue(value: integer);
 function ConfigVideoBlinkShowValue: string;
 	begin
 		if VideoBlink then
+{$IFDEF DSX86}
+			ConfigVideoBlinkShowValue := 'Disabled (Low Colors)'
+{$ELSE}
 			ConfigVideoBlinkShowValue := 'Enabled'
+{$ENDIF}
 		else
 {$IFDEF NEC98}
 			ConfigVideoBlinkShowValue := 'Disabled';
@@ -750,7 +754,7 @@ function ConfigInputCustomAction: boolean;
 {$ENDIF}
 
 const
-	ConfigEntryCount = 8
+	ConfigEntryCount = 9
 	{$IFDEF MSDOS} + 3 {$ENDIF}
 	{$IFDEF PLAYSTEP} + 1 {$ENDIF}
 	{$IFDEF FASTVID} + 2 {$ENDIF}

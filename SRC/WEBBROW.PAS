@@ -412,6 +412,9 @@ var
 		detailActive: boolean;
 		running: boolean;
 		titleString: string;
+		authorArray: TJSONArray;
+		authorResultEnum: TJSONEnum;
+		authorIndex: Int32;
 		addSpace: boolean;
 		procedure NewSearchQuery;
 		begin
@@ -450,7 +453,17 @@ var
 						if not EntryContainsDetail(jsonResult, ENGINE_DETAIL_CODE) then continue;
 						if jsonResult.Get('explicit', 0) <> 0 then continue;
 
-						titleString := jsonResult.Get('title') + ' by ' + jsonResult.Get('author');
+						titleString := jsonResult.Get('title') + ' by ';
+						if jsonResult.GetPath('author').JSONType = jtArray then begin
+							authorIndex := 0;
+							authorArray := jsonResult.GetPath('author') as TJSONArray;
+							for authorResultEnum in authorArray do begin
+								if authorIndex > 0 then titleString := titleString + ', ';
+								titleString := titleString + authorResultEnum.Value.AsString;
+								Inc(authorIndex);
+							end;
+						end else titleString := titleString + jsonResult.Get('author');
+
 						if Length(titleString) > 34 then
 							titleString := Copy(titleString, 1, 31) + '...';
 						TextWindowAppend(textWindow, '!'

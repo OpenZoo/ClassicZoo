@@ -267,11 +267,11 @@ interface
 			BoardData: array[0 .. MAX_BOARD] of TExtMemBlock;
 			BoardLen: array[0 .. MAX_BOARD] of word;
 		end;
-		THighScoreEntry = record
+		THighScoreEntry = {$IFDEF FPC}packed{$ENDIF} record
 			Name: TString50;
 			Score: integer;
 		end;
-		THighScoreList = array[1 .. HIGH_SCORE_COUNT] of THighScoreEntry;
+		THighScoreList = {$IFDEF FPC}packed{$ENDIF} array[1 .. HIGH_SCORE_COUNT] of THighScoreEntry;
 	var
 		PlayerDirX: integer;
 		PlayerDirY: integer;
@@ -357,6 +357,7 @@ interface
 		WorldExt: TWorldExt;
 		MAX_STAT: integer;
 
+		GameControllerHasTicked: boolean;
 {$IFDEF PLAYSTEP}
 		PlayerStepEnabled: boolean;
 {$ENDIF}
@@ -451,8 +452,8 @@ interface
 
 implementation
 
-{$IFDEF MEMBOUND}
 begin
+{$IFDEF MEMBOUND}
 	with Board.Stats[-1] do begin
 		X := 0;
 		Y := 1;
@@ -469,5 +470,20 @@ begin
 		DataPos := 1;
 		DataLen := 1;
 	end;
+{$ENDIF}
+{$IFDEF PLAYSTEP}
+	PlayerStepEnabled := false;
+{$ENDIF}
+{$IFDEF EXTCHEAT}
+	FillChar(CheatColorModifiers, SizeOf(CheatColorModifiers), 0);
+	FillChar(CheatCharModifiers, SizeOf(CheatCharModifiers), 0);
+	CheatNoClip := false;
+	CheatNoShoot := false;
+	CheatNoStar := false;
+	CheatFreeze := false;
+{$ENDIF}
+{$IFDEF DEBUGWND}
+	DebugCompatEnabled := false;
+	DebugUndefEnabled := false;
 {$ENDIF}
 end.

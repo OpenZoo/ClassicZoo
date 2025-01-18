@@ -30,6 +30,7 @@ unit Elements;
 
 interface
 	uses GameVars;
+	procedure ElementMonitorTick(statId: integer);
 	procedure ElementMove(oldX, oldY, newX, newY: integer);
 	procedure ElementPushablePush(x, y: integer; deltaX, deltaY: integer);
 	procedure DrawPlayerSurroundings(x, y: integer; bombPhase: integer);
@@ -655,6 +656,14 @@ procedure ElementTransporterMove(x, y, deltaX, deltaY: integer);
 	begin
 		with Board.Stats[GetStatIdAt(x + deltaX, y + deltaY)] do begin
 			if (deltaX = StepX) and (deltaY = StepY) then begin
+				if (deltaX = 0) and (deltaY = 0) then begin
+	{$IFDEF DEBUGWND}
+					if DebugCompatEnabled then
+						DebugShowElementMessage('Illegal transporter movement', x, y);
+	{$ENDIF}
+					exit;
+				end;
+
 				ix := X;
 				iy := Y;
 				isValidDest := true;
@@ -914,25 +923,42 @@ procedure ElementBlinkWallTick(statId: integer);
 
 							if Element = E_PLAYER then begin
 								playerStatId := GetStatIdAt(ix, iy);
-								if StepX <> 0 then begin
-									if Board.Tiles[ix][iy - 1].Element = E_EMPTY then
-										MoveStat(playerStatId, ix, iy - 1)
-									else if Board.Tiles[ix][iy + 1].Element = E_EMPTY then
-										MoveStat(playerStatId, ix, iy + 1);
-								end else begin
-									if Board.Tiles[ix + 1][iy].Element = E_EMPTY then
-										MoveStat(playerStatId, ix + 1, iy)
-									else if Board.Tiles[ix - 1][iy].Element = E_EMPTY then
-										if ExtensionEnabled[ExtFixBlinkWallShift] then
-											MoveStat(playerStatId, ix - 1, iy)
-										else
-											MoveStat(playerStatId, ix + 1, iy);
-								end;
 
-								if Element = E_PLAYER then begin
-									while World.Info.Health > 0 do
-										DamageStat(playerStatId);
-									hitBoundary := true;
+								if playerStatId >= 0 then begin
+									if StepX <> 0 then begin
+										if Board.Tiles[ix][iy - 1].Element = E_EMPTY then
+											MoveStat(playerStatId, ix, iy - 1)
+										else if Board.Tiles[ix][iy + 1].Element = E_EMPTY then
+											MoveStat(playerStatId, ix, iy + 1);
+									end else begin
+										if Board.Tiles[ix + 1][iy].Element = E_EMPTY then
+											MoveStat(playerStatId, ix + 1, iy)
+										else if Board.Tiles[ix - 1][iy].Element = E_EMPTY then
+											if ExtensionEnabled[ExtFixBlinkWallShift] then
+												MoveStat(playerStatId, ix - 1, iy)
+											else
+												MoveStat(playerStatId, ix + 1, iy);
+									end;
+
+									if Element = E_PLAYER then begin
+										while World.Info.Health > 0 do begin
+											DamageStat(playerStatId);
+											if playerStatId > 0 then begin
+{$IFDEF DEBUGWND}
+												if DebugCompatEnabled then
+													DebugShowElementMessage('Illegal statless player damage', x, y);
+{$ENDIF}
+												exit;
+											end;
+										end;
+										hitBoundary := true;
+									end;
+{$IFDEF DEBUGWND}
+								end else begin
+									{ TODO: Should destroying a statless player have any special behaviour? }
+									if DebugCompatEnabled then
+										DebugShowElementMessage('Illegal statless player damage', x, y);
+{$ENDIF}
 								end;
 							end;
 
@@ -1441,6 +1467,8 @@ procedure ElementPlayerTick(statId: integer);
 		i: integer;
 		bulletCount: integer;
 	begin
+		GameControllerHasTicked := true;
+
 		with Board.Stats[statId] do begin
 			with Board.Tiles[X][Y] do begin
 				if World.Info.EnergizerTicks > 0 then begin
@@ -1651,6 +1679,8 @@ procedure ElementPlayerTick(statId: integer);
 
 procedure ElementMonitorTick(statId: integer);
 	begin
+		GameControllerHasTicked := true;
+
 		if UpCase(InputKeyPressed) in [#27, 'A', 'E', 'H', 'N', 'P', 'Q', 'R', 'S', 'W', '|'] then
 			GamePlayExitRequested := true;
 	end;
