@@ -34,7 +34,7 @@ unit GameVars;
 interface
 	uses ExtMem;
 	const
-		DEFAULT_MAX_STAT = 150;
+		DEFAULT_MAX_STAT = 128;
 		ACTUAL_MAX_STAT = {$IFDEF SDL2}254{$ELSE}128{$ENDIF};
 
 		SAFE_MAX_ELEMENT = 79;
