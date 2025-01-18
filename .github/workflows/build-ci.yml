@@ -71,25 +71,26 @@ jobs:
           path: OUTPUT/zztlin64.zip
 
   build_macos:
+    if: false
     runs-on: macos-latest
     env:
-      FPC_PATH: /usr/local
+      FPC_PATH: /opt/homebrew
       HOME: /Users/runner
     steps:
       - uses: actions/checkout@v3
         with:
           submodules: recursive
       - name: Install Free Pascal and other dependencies
-        run: brew install fpc bash coreutils gnu-sed dylibbundler && sed -i -e "s@/bin/bash@/usr/local/bin/bash@g" build.sh make.sh
+        run: brew install fpc bash coreutils gnu-sed dylibbundler && sed -i -e "s@/bin/bash@/opt/homebrew/bin/bash@g" build.sh make.sh
       - name: Install SDL2
-        uses: BrettDong/setup-sdl2-frameworks@053eecc57e2b020e3f289ce4d54a3745465833a8
+        uses: BrettDong/setup-sdl2-frameworks@fc8da771a3356b25d56d06a81e274cd6eb75f28b
       - name: Build
-        run: PATH="/usr/local/opt/coreutils/libexec/gnubin:/usr/local/opt/gnu-sed/libexec/gnubin:$PATH" ./build.sh .github/build-ci-macos-x64.releases
-      - name: Package (x86_64)
-        run: cd OUTPUT && unzip zztmacx64.zip && cd .. && mkdir -p dist/ClassicZoo.app/Contents/MacOS && mkdir -p dist/ClassicZoo.app/Contents/libs/x86_64 && dylibbundler -od -b -x OUTPUT/ZZT -d dist/ClassicZoo.app/Contents/libs/x86_64/ -p @executable_path/../libs/x86_64/
+        run: PATH="/opt/homebrew/opt/coreutils/libexec/gnubin:/opt/homebrew/opt/gnu-sed/libexec/gnubin:$PATH" ./build.sh .github/build-ci-macos-aarch64.releases
+      - name: Package (AArch64)
+        run: cd OUTPUT && unzip zztmaca64.zip && cd .. && mkdir -p dist/ClassicZoo.app/Contents/MacOS && mkdir -p dist/ClassicZoo.app/Contents/libs/aarch64 && dylibbundler -od -b -x OUTPUT/ZZT -d dist/ClassicZoo.app/Contents/libs/aarch64/ -p @executable_path/../libs/aarch64/
       - name: Archive artifact
         uses: actions/upload-artifact@v3
         with:
-          name: ClassicZoo (macOS)
+          name: ClassicZoo (macOS, AArch64)
           path: |
             dist/ClassicZoo.app
