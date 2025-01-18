@@ -57,7 +57,7 @@ interface
 	procedure SoundInitFreqTable(highQuality: boolean);
 
 implementation
-uses AudioSim, CTypes, Sounds;
+uses AudioSim, CTypes, Math, Sounds;
 
 const
 	PIT_SPEED_MS = 55;
@@ -174,6 +174,8 @@ procedure TimerSysInstall;
 	var
 		mode: TIdleMode;
 	begin
+		{ https://forum.lazarus.freepascal.org/index.php?topic=69852.15 }
+		SetExceptionMask(GetExceptionMask + [exZeroDivide, exInvalidOp, exDenormalized, exOverflow, exUnderflow, exPrecision]);
 		SDL_Init(SDL_INIT_EVERYTHING);
 		SDL_GameControllerAddMappingsFromFile('gamecontrollerdb.txt');
 		SDL_StartTextInput;
