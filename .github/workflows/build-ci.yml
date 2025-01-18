@@ -50,6 +50,26 @@ jobs:
           name: ClassicZoo (Linux)
           path: OUTPUT/zztlin64.zip
 
+  build_linux_aarch64:
+    runs-on: ubuntu-22.04-arm
+    env:
+      FPC_LIBRARY_PATH: /usr/lib/aarch64-linux-gnu
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      - name: Update Ubuntu packages
+        run: sudo apt-get update
+      - name: Set up Ubuntu packages
+        run: sudo apt-get install -y fp-compiler-3.2.2 fp-units-base-3.2.2 fp-units-fcl-3.2.2 fp-units-net-3.2.2 fp-units-rtl-3.2.2 fp-utils-3.2.2 git zip libsdl2-dev
+      - name: Build
+        run: ./build.sh .github/build-ci-linux-aarch64.releases
+      - name: Archive artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ClassicZoo (Linux, AArch64)
+          path: OUTPUT/zztlin64.zip
+
   build_macos:
     runs-on: macos-latest
     env:

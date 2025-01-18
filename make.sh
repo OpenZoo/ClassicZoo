@@ -74,6 +74,12 @@ while getopts "a:d:e:n:o:p:rg" opt; do
 				FPC_BINARY=ppcrossx64
 #			fi
 			;;
+		aarch64)
+#			FPC_BINARY=ppca64
+#			if [ ! -x "$(command -v $FPC_BINARY)" ]; then
+				FPC_BINARY=ppcrossa64
+#			fi
+			;;
 		arm)
 			FPC_BINARY=ppcrossarm
 			;;
