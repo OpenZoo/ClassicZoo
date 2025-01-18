@@ -397,7 +397,7 @@ procedure InputUpdate;
 {$ENDIF}
 				end;
 				SDL_KEYDOWN, SDL_KEYUP: begin
-					InputUpdateKeymod(event.key.keysym._mod);
+					InputUpdateKeymod(event.key.keysym.mod_);
 					scode := Uint32(event.key.keysym.scancode);
 					kcode := Uint32(event.key.keysym.sym);
 					if KeysAltHeld and (Char(kcode) = 'p') then begin
@@ -428,7 +428,7 @@ procedure InputUpdate;
 					end else if ((Byte(k) and $7F) <> 0) and not ((Byte(k) >= 32) and (Byte(k) < 127)) then begin
  						if event.type_ = SDL_KEYDOWN then begin
 							{ TODO: Handle failure. }
-							if InputSetKeyPressed(KPSKeyboard, Byte(k), false, event.key._repeat <> 0) then begin end;
+							if InputSetKeyPressed(KPSKeyboard, Byte(k), false, event.key.repeat_ <> 0) then begin end;
 						end else begin
 							InputClearKeyPressed(KPSKeyboard, Byte(k), false);
 						end;
