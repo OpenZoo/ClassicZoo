@@ -1854,7 +1854,7 @@ procedure InitElementDefs;
 				ScoreValue := 0;
 			end;
 
-		ElementDefs[0].Character := ' ';
+		{ ElementDefs[0].Character := ' '; -- default }
 		ElementDefs[0].Color := $70;
 		ElementDefs[0].Pushable := true;
 		ElementDefs[0].Walkable := true;
@@ -1878,7 +1878,7 @@ procedure InitElementDefs;
 
 		ElementDefs[20].Character := #176;
 		ElementDefs[20].Color := $20;
-		ElementDefs[20].Walkable := false;
+		{ ElementDefs[20].Walkable := false; -- default }
 		ElementDefs[20].TouchProc := ElementForestTouch;
 		ElementDefs[20].EditorCategory := CATEGORY_TERRAIN;
 		ElementDefs[20].EditorShortcut := 'F';
@@ -2014,7 +2014,7 @@ procedure InitElementDefs;
 
 		ElementDefs[72].Character := 'S';
 		ElementDefs[72].Color := $0F;
-		ElementDefs[72].Destructible := false;
+		{ ElementDefs[72].Destructible := false; -- default }
 		ElementDefs[72].Cycle := 1;
 		ElementDefs[72].TickProc := ElementStarTick;
 		ElementDefs[72].TouchProc := ElementDamagingTouch;
@@ -2137,8 +2137,8 @@ procedure InitElementDefs;
 		ElementDefs[34].ScoreValue := 1;
 
 		ElementDefs[37].Character := '*';
-		ElementDefs[37].Color := COLOR_CHOICE_ON_BLACK;
-		ElementDefs[37].Destructible := false;
+		{ ElementDefs[37].Color := COLOR_CHOICE_ON_BLACK; -- default }
+		{ ElementDefs[37].Destructible := false; -- default }
 		ElementDefs[37].Cycle := 3;
 		ElementDefs[37].TickProc := ElementSlimeTick;
 		ElementDefs[37].TouchProc := ElementSlimeTouch;
@@ -2193,7 +2193,7 @@ procedure InitElementDefs;
 		ElementDefs[32].Name := 'Ricochet';
 
 		ElementDefs[23].Character := #177;
-		ElementDefs[23].Destructible := false;
+		{ ElementDefs[23].Destructible := false; -- default }
 		ElementDefs[23].EditorCategory := CATEGORY_TERRAIN;
 		ElementDefs[23].EditorShortcut := 'B';
 		ElementDefs[23].Name := 'Breakable';
@@ -2229,7 +2229,7 @@ procedure InitElementDefs;
 		ElementDefs[30].ParamDirName := 'Direction?';
 
 		ElementDefs[40].Character := #16;
-		ElementDefs[40].Color := COLOR_CHOICE_ON_BLACK;
+		{ ElementDefs[40].Color := COLOR_CHOICE_ON_BLACK; -- default }
 		ElementDefs[40].HasDrawProc := true;
 		ElementDefs[40].DrawProc := ElementPusherDraw;
 		ElementDefs[40].Cycle := 4;
@@ -2286,7 +2286,7 @@ procedure InitElementDefs;
 		ElementDefs[47].CategoryName := 'Terrains:';
 
 		ElementDefs[63].Character := #197;
-		ElementDefs[63].Color := COLOR_CHOICE_ON_BLACK;
+		{ ElementDefs[63].Color := COLOR_CHOICE_ON_BLACK; -- default }
 		ElementDefs[63].EditorCategory := CATEGORY_TERRAIN2;
 		ElementDefs[63].PlaceableOnTop := true;
 		ElementDefs[63].Walkable := true;
@@ -2328,7 +2328,7 @@ procedure InitElementDefs;
 		ElementDefs[51].EditorShortcut := '6';
 		ElementDefs[51].Name := 'Water E';
 
-		ElementDefs[28].Character := ' ';
+		{ ElementDefs[28].Character := ' '; -- default }
 		ElementDefs[28].EditorCategory := CATEGORY_TERRAIN;
 		ElementDefs[28].TouchProc := ElementInvisibleTouch;
 		ElementDefs[28].EditorShortcut := 'I';
