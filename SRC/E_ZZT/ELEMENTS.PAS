@@ -1138,6 +1138,13 @@ procedure ElementScrollTouch(x, y: integer; sourceStatId: integer; var deltaX, d
 		unk1: integer;
 	begin
 		statId := GetStatIdAt(x, y);
+		if statId < 0 then begin
+{$IFDEF DEBUGWND}
+			if DebugCompatEnabled then
+				DebugShowElementMessage('Illegal scroll touch', x, y);
+{$ENDIF}
+			exit;
+		end;
 
 		with Board.Stats[statId] do begin
 			textWindow.Selectable := false;

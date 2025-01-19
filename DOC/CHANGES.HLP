@@ -12,6 +12,7 @@ $< ClassicZoo dev >
   crashes:
   / Monitor zero
   / Player zero
+  / Statless scroll
 / [SDL2] Fixed crashes on launch on
   certain system configurations.
 / Fixed visual issues rendering the

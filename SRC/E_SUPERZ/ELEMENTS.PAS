@@ -1253,6 +1253,13 @@ procedure ElementScrollTouch(x, y: integer; sourceStatId: integer; var deltaX, d
 		unk1: integer;
 	begin
 		statId := GetStatIdAt(x, y);
+		if statId < 0 then begin
+{$IFDEF DEBUGWND}
+			if DebugCompatEnabled then
+				DebugShowElementMessage('Illegal scroll touch', x, y);
+{$ENDIF}
+			exit;
+		end;
 
 		with Board.Stats[statId] do begin
 			textWindow.Selectable := false;
@@ -1262,7 +1269,15 @@ procedure ElementScrollTouch(x, y: integer; sourceStatId: integer; var deltaX, d
 
 			DataPos := 0;
 			if not OopExecute(statId, DataPos, 'Scroll') then begin
-				RemoveStat(GetStatIdAt(x, y));
+				statId := GetStatIdAt(x, y);
+				if statId <> -1 then begin
+					RemoveStat(statId);
+{$IFDEF DEBUGWND}
+				end else begin
+					if DebugCompatEnabled then
+						DebugShowElementMessage('Illegal scroll deletion', x, y);
+{$ENDIF}
+				end;
 			end;
 		end;
 	end;
