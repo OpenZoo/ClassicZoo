@@ -1494,26 +1494,29 @@ procedure ElementBoardEdgeTouch(x, y: integer; sourceStatId: integer; var deltaX
 		if Board.Info.NeighborBoards[neighborId] <> 0 then begin
 			boardId := World.Info.CurrentBoard;
 			BoardChange(Board.Info.NeighborBoards[neighborId]);
-			if Board.Tiles[entryX][entryY].Element <> E_PLAYER then begin
-				ElementDefs[Board.Tiles[entryX][entryY].Element].TouchProc(
-					entryX, entryY, sourceStatId, deltaX, deltaY);
-			end;
+			with Board.Tiles[entryX][entryY] do begin
+				if Element <> E_PLAYER then begin
+					ElementDefs[Element].TouchProc(entryX, entryY, sourceStatId, deltaX, deltaY);
+				end;
 
-			if ElementDefs[Board.Tiles[entryX][entryY].Element].Walkable
-				or (Board.Tiles[entryX][entryY].Element = E_PLAYER) then
-			begin
-				if Board.Tiles[entryX][entryY].Element <> E_PLAYER then
-					MoveStat(0, -entryX, entryY);
+				if ElementDefs[Element].Walkable or (Element = E_PLAYER)
+{$IFDEF EXTCHEAT}
+				or (CheatNoClip and (Element <> E_BOARD_EDGE))
+{$ENDIF}
+				then begin
+					if Element <> E_PLAYER then
+						MoveStat(0, -entryX, entryY);
 
-				BoardUpdateDrawOffset;
-				TransitionDrawBoardChange;
-				ClearDisplayMessage;
-				deltaX := 0;
-				deltaY := 0;
-				BoardEnter;
-				if OopSend(0, 'ALL:ENTER', false) then begin end;
-			end else begin
-				BoardChange(boardId);
+					BoardUpdateDrawOffset;
+					TransitionDrawBoardChange;
+					ClearDisplayMessage;
+					deltaX := 0;
+					deltaY := 0;
+					BoardEnter;
+					if OopSend(0, 'ALL:ENTER', false) then begin end;
+				end else begin
+					BoardChange(boardId);
+				end;
 			end;
 		end;
 	end;

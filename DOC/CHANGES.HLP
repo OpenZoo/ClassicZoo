@@ -15,8 +15,10 @@ $< ClassicZoo dev >
   / Statless scroll
 / [SDL2] Fixed crashes on launch on
   certain system configurations.
-/ Fixed visual issues rendering the
-  text editor sidebar in SUPERZ.
+/ {SuperZ} Fixed ?NOCLIP interaction
+  with board edges.
+/ {SuperZ} Fixed visual issues when
+  rendering the text editor sidebar.
 
 $< ClassicZoo 4.39 >
 
