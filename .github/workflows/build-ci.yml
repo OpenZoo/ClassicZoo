@@ -25,7 +25,7 @@ jobs:
       - name: Build
         run: ./build.sh .github/build-ci-windows.releases
       - name: Archive artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ClassicZoo (Windows)
           path: OUTPUT/zztwin64.zip
@@ -45,7 +45,7 @@ jobs:
       - name: Build
         run: ./build.sh .github/build-ci-linux.releases
       - name: Archive artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ClassicZoo (Linux)
           path: OUTPUT/zztlin64.zip
@@ -65,7 +65,7 @@ jobs:
       - name: Build
         run: ./build.sh .github/build-ci-linux-aarch64.releases
       - name: Archive artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ClassicZoo (Linux, AArch64)
           path: OUTPUT/zztlin64.zip
@@ -89,7 +89,7 @@ jobs:
       - name: Package (AArch64)
         run: cd OUTPUT && unzip zztmaca64.zip && cd .. && mkdir -p dist/ClassicZoo.app/Contents/MacOS && mkdir -p dist/ClassicZoo.app/Contents/libs/aarch64 && dylibbundler -od -b -x OUTPUT/ZZT -d dist/ClassicZoo.app/Contents/libs/aarch64/ -p @executable_path/../libs/aarch64/
       - name: Archive artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ClassicZoo (macOS, AArch64)
           path: |
