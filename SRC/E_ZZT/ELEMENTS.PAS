@@ -47,7 +47,7 @@ uses
 {$IFDEF MSDOS}
 {$IFDEF NEC98} Pc98, {$ELSE} Crt, {$ENDIF}
 {$ENDIF} {$IFDEF SDL2} AudioSim, {$ENDIF}
-ZVideo, Sounds, ZInput, TxtWind, Editor, Oop, GameConf, Sidebar, Cheats, GameSh, Game;
+ZVideo, Sounds, ZInput, ZDemo, TxtWind, Editor, Oop, GameConf, Sidebar, Cheats, GameSh, Game;
 
 const
 {$IFDEF RAWMEM}
@@ -1593,7 +1593,9 @@ procedure ElementPlayerTick(statId: integer);
 					end;
 				end;
 				#27, 'Q': begin
-					GamePromptEndPlay;
+					if not DemoIsPlaying then begin
+						GamePromptEndPlay;
+					end;
 				end;
 				'S': begin
 					GameWorldSave('Save game:', SavedGameFileName, '.SAV');
@@ -1652,7 +1654,7 @@ procedure ElementPlayerTick(statId: integer);
 			end;
 
 			if (Board.Info.TimeLimitSec > 0) and (World.Info.Health > 0) then
-				if SoundHasTimeElapsed(World.Info.BoardTimeHsec, 100) then begin
+				if DemoSoundHasTimeElapsed(World.Info.BoardTimeHsec, 100) then begin
 					Inc(World.Info.BoardTimeSec);
 
 					if (Board.Info.TimeLimitSec - 10) = World.Info.BoardTimeSec then begin

@@ -50,7 +50,7 @@ SysUtils, FileSel,
 {$IFDEF UNIX}
 cwstring,
 {$ENDIF}
-Dos, ExtMem, FileSys, ZVideo, Keys, Sounds, TimerSys, ZInput, TxtWind,
+Dos, ExtMem, FileSys, ZVideo, Keys, Sounds, TimerSys, ZInput, ZDemo, TxtWind,
 GameConf, GameVars, Elements, Editor, Oop, Game;
 
 {$IFDEF SDL2}
@@ -132,6 +132,7 @@ begin
 	ConfigFileName := '%ENGINE%.INI';
 {$ENDIF}
 {$ENDIF}
+	DemoEngineName := '%NAME% %VERSION%';
 	GameTitleExitRequested := false;
 	IoTmpBufSize := IO_BUFFER_DEFAULT_SIZE;
 
