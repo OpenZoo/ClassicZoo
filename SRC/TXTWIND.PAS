@@ -139,7 +139,7 @@ implementation
 uses
 {$IFDEF PRINTTXT} Printer, {$ENDIF}
 {$IFDEF WIDECHAR} ZWideChr, {$ENDIF}
-Sounds, TimerSys, ZDemo, FileSys, ZInput, Keys, FileSel, Game, Sidebar;
+Sounds, TimerSys, ZDemo, FileSys, ZInput, Keys, FileOps, FileSel, Game, Sidebar;
 
 type
 	TTextWindowLineBuffer = array[1 .. MAX_TEXT_WINDOW_LINES] of PTTextWindowLine;

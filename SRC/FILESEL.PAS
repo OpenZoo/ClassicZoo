@@ -29,7 +29,6 @@ unit FileSel;
 
 interface
 	uses GameVars;
-	function FileExists(name: TFilenameString): boolean;
 	function FileReadAll(name: TFilenameString; var fdata: pointer; maxSize: word): word;
 	function FileSelect(title, extension: TString50; var cachedLinePos: integer): TFilenameString;
 
@@ -46,25 +45,11 @@ StrUtils, SysUtils,
 {$ELSE}
 Dos,
 {$ENDIF}
-Game, ZInput, TxtWind, FileSys;
+Game, ZInput, TxtWind, FileOps, FileSys;
 
 const
 	PATH_PREVIEW_LENGTH = 24;
 	MAX_FILENAME_LENGTH = 42; { TODO: Increase. }
-
-function FileExists(name: TFilenameString): boolean;
-	var
-		f: file;
-	begin
-		AssignFSys(f, name);
-		Reset(f);
-		if IOResult = 0 then begin
-			Close(f);
-			FileExists := true;
-		end else begin
-			FileExists := false;
-		end;
-	end;
 
 function FileReadAll(name: TFilenameString; var fdata: pointer; maxSize: word): word;
 	var

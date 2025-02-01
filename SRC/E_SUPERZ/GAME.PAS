@@ -115,7 +115,8 @@ uses
 {$IFDEF WEBBROW} WebBrow, {$ENDIF}
 {$IFDEF UISCBACK} UiScBack, {$ENDIF}
 Dos, GameSh, Cheats, GameIo,
-GameConf, FileSys, ExtMem, FileSel, ZVideo, Sounds, TimerSys, ZInput, Elements, Editor, Oop, Sidebar;
+GameConf, FileSys, ExtMem, FileOps, FileSel, ZVideo, Sounds,
+TimerSys, ZInput, Elements, Editor, Oop, Sidebar;
 
 function GameVideoInstall(videoMode, mode: integer): boolean;
 	var

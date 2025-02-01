@@ -30,31 +30,32 @@
 unit FileOps;
 
 interface
+	uses GameVars;
 	{ Copy an already open file. }
 	procedure CopyOpenFile(var fromFile: file; toFilename, toExt: string);
 	{ Copy a file that isn't open. }
 	procedure CopyFile(fromFilename, fromExt, toFilename, toExt: string);
 
-	function FileExists(fullFileName: string): boolean;
+	function FileExists(name: TFilenameString): boolean;
 	function GetNumberedFilename(origFilename, origExtension: string;
 		maxNumber: integer): string;
 
 implementation
-uses Dos;
+uses Dos, FileSys;
 
 const COPY_BUFFER_SIZE = 1024;
-var CopyBuffer: array[1 .. COPY_BUFFER_SIZE] of byte;
 
 { Copies the whole fromFile to a new to file. }
 procedure CopyOpenFile(var fromFile: file; toFilename: string; toExt: string);
 	var
+		CopyBuffer: array[1 .. COPY_BUFFER_SIZE] of byte;
 		toFile: file;
 		bytesRead, bytesWritten: integer;
 		OK: boolean;
 		currentPos: longint;
 		byteArray : array[1..8] of byte;
 	begin
-		Assign(toFile, toFilename + toExt);
+		AssignFSys(toFile, toFilename + toExt);
 		Rewrite(toFile, 1);
 
 		OK := (IOResult = 0);
@@ -80,7 +81,7 @@ procedure CopyFile(fromFilename, fromExt, toFilename, toExt: string);
 	var
 		fromFile: file;
 	begin
-		Assign(fromFile, fromFilename + fromExt);
+		AssignFSys(fromFile, fromFilename + fromExt);
 		Reset(fromFile, 1);
 
 		if IOResult = 0 then
@@ -89,20 +90,19 @@ procedure CopyFile(fromFilename, fromExt, toFilename, toExt: string);
 		Close(fromFile);
 	end;
 
-{ Boolean function that returns True if the file exists;
- 	otherwise, it returns False. Closes the file if it exists.
- 	From the TP 5.5 reference manual. }
-function FileExists(fullFileName: string): boolean;
+function FileExists(name: TFilenameString): boolean;
 	var
 		f: file;
 	begin
-	{SI-}
-		Assign(f, fullFileName);
-		Reset (f);
-		Close (f);
-	{SI+}
-		FileExists := (IOResult = 0) and (fullFileName <> '');
-	end; {FileExists}
+		AssignFSys(f, name);
+		Reset(f);
+		if IOResult = 0 then begin
+			Close(f);
+			FileExists := true;
+		end else begin
+			FileExists := false;
+		end;
+	end;
 
 { Given an original file like FOOBAR.BAZ, repeatedly adds a number to it,
   producing FOOBAR1, FOOBAR2, etc. until it finds a file that doesn't exist.

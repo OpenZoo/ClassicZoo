@@ -55,7 +55,7 @@ interface
 implementation
 uses
 {$IFDEF WIDECHAR} ZWideChr, {$ENDIF}
-FileSel, ZInput, TimerSys, Sounds, ZVideo, TxtWind, Game;
+FileOps, ZInput, TimerSys, Sounds, ZVideo, TxtWind, Game;
 
 {$IFNDEF MSDOS}
 {$DEFINE SAFEVID}

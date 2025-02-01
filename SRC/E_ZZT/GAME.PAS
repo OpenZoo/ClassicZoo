@@ -97,7 +97,7 @@ uses
 {$IFDEF WEBBROW} WebBrow, {$ENDIF}
 {$IFDEF UISCBACK} UiScBack, {$ENDIF}
 Dos, GameSh, Cheats, GameIo,
-FileSel, FileSys, GameConf, ExtMem, ZVideo, Sounds, ZDemo, TimerSys,
+FileOps, FileSel, FileSys, GameConf, ExtMem, ZVideo, Sounds, ZDemo, TimerSys,
 ZInput, Elements, Editor, Oop, Sidebar;
 
 function LFSR11UpdateSeed(var seed: word; var tx, ty: byte): boolean;
