@@ -45,8 +45,7 @@ interface
 		VIDEO_MODE_80X50 = 3;
 		VIDEO_CHARSET_UNCHANGED = -1;
 	var
-		VideoForceSafe: boolean;
-		VideoForceNoSnow: boolean;
+		VideoSafetyLevel: byte;
 		VideoMonochrome: boolean;
 		VideoBlink: boolean;
 		VideoBlinkMask: byte;

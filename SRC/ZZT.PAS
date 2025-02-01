@@ -90,14 +90,12 @@ procedure ParseArguments;
 {$ENDIF}
 {$IFDEF MSDOS}
 {$IFNDEF NEC98}
-				if pArg = '/NOSNOW' then
-					VideoForceNoSnow := true
+				if pArg[2] = 'V' then
+					VideoSafetyLevel := Ord(pArg[3]) - 48;
 {$IFDEF E_SUPERZ}
-				else if pArg = '/NOFONT' then
-					UseCustomFont := false
+				if pArg = '/NOFONT' then
+					UseCustomFont := false;
 {$ENDIF}
-				else if pArg = '/SAFEV' then
-					VideoForceSafe := true;
 {$ENDIF}
 {$ENDIF}
 {$IFNDEF NOEXTMEM}
@@ -163,10 +161,6 @@ begin
 	DebugUndefEnabled := false;
 {$ENDIF}
 
-{$IFDEF E_ZZT}
-	if VideoInstall(VIDEO_MODE_80X25, nil, 0, 1) then begin end;
-{$ENDIF}
-
 	GameConfigInit;
 	if not GameConfigLoad then begin
 		if not GameConfigSave then begin end;
@@ -178,6 +172,10 @@ begin
 	UseCustomFont := true;
 {$ENDIF}
 	ParseArguments;
+
+{$IFDEF E_ZZT}
+	if VideoInstall(VIDEO_MODE_80X25, nil, 0, 1) then begin end;
+{$ENDIF}
 {$IFDEF E_SUPERZ}
 	if GameVideoInstall(VIDEO_MODE_80X25, VIEW_TITLE) then begin end;
 {$ENDIF}

@@ -8,6 +8,16 @@ Legend:
 
 $< ClassicZoo dev >
 
+* [DOS] Replaced /NOSNOW and /SAFEV
+  with video safety levels:
+  * /V0 = fast path, ignores CGA snow
+          (previous /NOSNOW)
+  * /V1 = fast path, CGA snow aware
+          (default)
+  * /V2 = more compatible w/ CGA snow
+          (newly introduced)
+  * /V3 = safe path, INT 10h calls
+          (previous /SAFEV)
 / Fixed the following Crashopedia
   crashes:
   / Monitor zero
@@ -15,6 +25,9 @@ $< ClassicZoo dev >
   / Statless scroll
 / [SDL2] Fixed crashes on launch on
   certain system configurations.
+/ {SuperZ} [DOS] CGA snow avoidance
+  is no longer used in 40-column mode,
+  as it was never required there.
 / {SuperZ} Fixed ?NOCLIP interaction
   with board edges.
 / {SuperZ} Fixed visual issues when

@@ -45,8 +45,7 @@ interface
 		VIDEO_CHARSET_UNCHANGED = -1;
 	var
 		VideoWriteText: TVideoWriteTextProc;
-		VideoForceSafe: boolean;
-		VideoForceNoSnow: boolean;
+		VideoSafetyLevel: byte;
 		VideoMonochrome: boolean;
 		VideoTextSegment: word;
 		VideoEGAInstalled: boolean;
@@ -315,8 +314,6 @@ initialization
 	VideoColumns := ScreenWidth;
 	VideoRows := ScreenHeight;
 	VideoWriteText := @VideoWriteTextBuf;
-	VideoForceNoSnow := false;
-	VideoForceSafe := false;
 	VideoMDAInstalled := false;
 	VideoVGAInstalled := false;
 	VSULocked := false;

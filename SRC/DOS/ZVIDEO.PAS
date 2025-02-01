@@ -47,8 +47,7 @@ interface
 		VIDEO_CHARSET_UNCHANGED = -1;
 	var
 		VideoWriteText: TVideoWriteTextProc;
-		VideoForceSafe: boolean;
-		VideoForceNoSnow: boolean;
+		VideoSafetyLevel: byte;
 		VideoCurrentMode: integer;
 		VideoMonochrome: boolean;
 		VideoBlink: boolean;
@@ -89,9 +88,6 @@ const
 {$DEFINE VNOCGA}
 {$DEFINE VNOSAFE}
 {$ENDIF}
-{$IFDEF ZETAEMU}
-{$DEFINE VNOCGA}
-{$ENDIF}
 
 function VideoGetBlinkMode: TVideoBlinkMode;
 	begin
@@ -105,7 +101,7 @@ function VideoGetBlinkMode: TVideoBlinkMode;
 
 {$IFNDEF FPC}
 {$IFNDEF VNOCGA}
-procedure VideoWriteTextCGA(x, y, color: byte; text: TVideoLine);
+procedure VideoWriteTextCGAImproved(x, y, color: byte; text: TVideoLine);
 	begin
 		inline(
 			$8B/$06/VideoTextSegment/{ MOV AX, VideoTextSegment }
@@ -141,6 +137,41 @@ procedure VideoWriteTextCGA(x, y, color: byte; text: TVideoLine);
 			$89/$D8/             { MOV AX, BX }
 			$AB/                 { STOSW }
 			$E2/$E8/             { LOOP next_char }
+			$FB                  { STI }
+		{ finish: }
+		);
+	end;
+
+procedure VideoWriteTextCGA(x, y, color: byte; text: TVideoLine);
+	begin
+		inline(
+			$8B/$06/VideoTextSegment/{ MOV AX, VideoTextSegment }
+			$8E/$C0/             { MOV ES, AX }
+			$8A/$86/y/           { MOV AL, byte ptr [BP + y] }
+			$F6/$26/VideoColumns/{ MUL VideoColumns }
+			$31/$C9/             { XOR CX, CX }
+			$89/$CE/             { MOV SI, CX }
+			$8A/$8E/x/           { MOV CL, byte ptr [BP + x] }
+			$01/$C8/             { ADD AX, CX }
+			$D1/$E0/             { SHL AX, 1 }
+			$8B/$F8/             { MOV DI, AX }
+			$8A/$BE/color/       { MOV BH, byte ptr [BP + color] }
+			$8A/$8E/text/        { MOV CL, byte ptr [BP + text] }
+			$BA/$03DA/           { MOV DX, 0x03DA }
+			$22/$C9/             { AND CL, CL }
+			$74/$1A/             { JZ finish }
+			$FA/                 { CLI }
+		{ next_char: }
+			$46/                 { INC SI }
+			$8A/$9A/text/        { MOV BL, byte ptr [BP + SI + text] }
+		{ cga_snow2: }
+			$EC/                 { IN AL, DX }
+			$D0/$E8/             { SHR AL, 1 }
+			$73/$FB/             { JNC cga_snow2 }
+		{ write_char: }
+			$89/$D8/             { MOV AX, BX }
+			$AB/                 { STOSW }
+			$E2/$F1/             { LOOP next_char }
 			$FB                  { STI }
 		{ finish: }
 		);
@@ -181,7 +212,7 @@ procedure VideoWriteTextFast(x, y, color: byte; text: TVideoLine);
 	end;
 {$ELSE}
 {$IFNDEF VNOCGA}
-procedure VideoWriteTextCGA(x, y, color: byte; text: TVideoLine);
+procedure VideoWriteTextCGAImproved(x, y, color: byte; text: TVideoLine);
 	assembler;
 	label next_char;
 	label cga_snow;
@@ -216,6 +247,49 @@ procedure VideoWriteTextCGA(x, y, color: byte; text: TVideoLine);
 		jnz write_char
 		shr al, 1
 		jc cga_snow
+	cga_snow2:
+		in al, dx
+		shr al, 1
+		jnc cga_snow2
+	write_char:
+		mov ax, bx
+		stosw
+		loop next_char
+		sti
+	finish:
+		pop ds
+		pop es
+	end ['ax', 'bx', 'cx', 'dx', 'si', 'di'];
+
+procedure VideoWriteTextCGA(x, y, color: byte; text: TVideoLine);
+	assembler;
+	label next_char;
+	label cga_snow;
+	label cga_snow2;
+	label write_char;
+	label finish;
+	asm
+		push es
+		mov ax, VideoTextSegment
+		mov es, ax
+		mov al, y
+		mul VideoColumns
+		xor cx, cx
+		mov cl, x
+		add ax, cx
+		shl ax, 1
+		mov di, ax
+		mov bh, color
+		mov dx, 03DAh
+		push ds
+		lds si, [text]
+		mov cl, [si]
+		and cl, cl
+		jz finish
+		cli
+	next_char:
+		inc si
+		mov bl, [si]
 	cga_snow2:
 		in al, dx
 		shr al, 1
@@ -297,6 +371,11 @@ function ColorToBW(color: byte): byte;
 procedure VideoWriteTextCGABW(x, y, color: byte; text: TVideoLine);
 	begin
 		VideoWriteTextCGA(x, y, ColorToBW(color), text);
+	end;
+
+procedure VideoWriteTextCGAImprovedBW(x, y, color: byte; text: TVideoLine);
+	begin
+		VideoWriteTextCGAImproved(x, y, ColorToBW(color), text);
 	end;
 {$ENDIF}
 
@@ -465,26 +544,30 @@ FinishVideoInstall:
 {$IFDEF VNOCGA}
 			VideoWriteText := VideoWriteTextFastBW;
 {$ELSE}
-			if VideoEGAInstalled or VideoMDAInstalled or VideoForceNoSnow then
+			if (VideoSafetyLevel = 0) or (VideoColumns = 40) then
 				VideoWriteText := VideoWriteTextFastBW
+			else if VideoSafetyLevel = 1 then
+				VideoWriteText := VideoWriteTextCGAImprovedBW
 			else
 				VideoWriteText := VideoWriteTextCGABW;
 {$ENDIF}
 {$IFNDEF VNOSAFE}
-			if VideoForceSafe then
+			if VideoSafetyLevel = 3 then
 				VideoWriteText := VideoWriteTextSafeBW;
 {$ENDIF}
 		end else begin
 {$IFDEF VNOCGA}
 			VideoWriteText := VideoWriteTextFast;
 {$ELSE}
-			if VideoEGAInstalled or VideoForceNoSnow then
+			if (VideoSafetyLevel = 0) or (VideoColumns = 40) then
 				VideoWriteText := VideoWriteTextFast
+			else if VideoSafetyLevel = 1 then
+				VideoWriteText := VideoWriteTextCGAImproved
 			else
 				VideoWriteText := VideoWriteTextCGA;
 {$ENDIF}
 {$IFNDEF VNOSAFE}
-			if VideoForceSafe then
+			if VideoSafetyLevel = 3 then
 				VideoWriteText := VideoWriteTextSafe;
 {$ENDIF}
 		end;
@@ -566,7 +649,7 @@ procedure VideoHideCursor;
 procedure VideoSetBorderColor(value: integer);
 	begin
 {$IFNDEF DSX86}
-		if not VideoForceSafe then begin
+		if VideoSafetyLevel < 3 then begin
 			Port[PORT_CGA_PALETTE] := value;
 		end;
 {$ENDIF}
@@ -579,7 +662,7 @@ procedure VideoSetBlink(value: boolean);
 		VideoBlink := value;
 {$IFNDEF DSX86}
 		{ CGA route }
-		if not VideoForceSafe then begin
+		if VideoSafetyLevel < 3 then begin
 			if value then
 				Port[PORT_CGA_MODE] := Port[PORT_CGA_MODE] or $20
 			else
@@ -658,7 +741,7 @@ procedure VideoMove(x, y, chars: integer; data: pointer; toVideo: boolean);
 		i, offset: integer;
 	begin
 {$IFNDEF VNOSAFE}
-		if VideoForceSafe then begin
+		if VideoSafetyLevel = 3 then begin
 			offset := 0;
 			for i := 1 to chars do begin
 				regs.AH := $02;
@@ -793,8 +876,6 @@ begin
 		VideoTextSegment := $B800;
 		VideoMonochrome := false;
 	end;
-	VideoForceNoSnow := false;
-	VideoForceSafe := false;
 {$IFDEF DSX86}
 	VideoBlink := false;
 {$ELSE}
@@ -803,4 +884,8 @@ begin
 	VideoCurrentMode := -1;
 
 	VideoPreInstall;
+
+	VideoSafetyLevel := 1;
+	if VideoEGAInstalled or VideoMDAInstalled then
+		VideoSafetyLevel := 0;
 end.
