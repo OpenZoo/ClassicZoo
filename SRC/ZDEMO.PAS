@@ -198,6 +198,12 @@ var
 	DemoDoIgnoreKeypresses: boolean;
 	WorldName: string[20]; { ditto }
 
+{$IFNDEF MSDOS}
+procedure DemoFlushFile(var f: text);
+	begin
+		Flush(f);
+	end;
+{$ELSE}
 procedure DemoFlushFile(var f: text);
 	var
 		regs: Registers;
@@ -219,6 +225,7 @@ procedure DemoFlushFile(var f: text);
 		regs.DX := 0;
 		Intr($21, regs);
 	end;
+{$ENDIF}
 
 procedure DemoLogEmit(code: string; ticks: longint);
 	begin
@@ -700,6 +707,13 @@ function DemoGetWorldName: string;
 		DemoGetWorldName := WorldName;
 	end;
 
+{$IFNDEF MSDOS}
+procedure Sti;
+begin end;
+
+procedure Cli;
+begin end;
+{$ELSE}
 {$IFDEF FPC}
 procedure Sti;
 asm sti end;
@@ -712,6 +726,7 @@ inline($fb);
 
 procedure Cli;
 inline($fa);
+{$ENDIF}
 {$ENDIF}
 
 procedure DemoPlaySyncPit;
@@ -745,12 +760,13 @@ procedure DemoInputUpdate(expectedPitCount: word; isGameplaySensitive: boolean);
 	label PlayFoundInput;
 	label AfterInput;
 	begin
-		{ Playback mode. }
+		{ Handle demo playback inputs/commands. }
 		if DemoCurrentMode = DModePlay then begin
 
-			{ Check if the player pressed Q or ESC. If so, stop the demo. }
+			{ Handle player key presses. }
 			while KeyPressed do begin
-				rkey := UpCase(readKey);
+				rkey := UpCase(ReadKey);
+				{ Check if the player pressed Q or ESC. If so, stop the demo. }
 				if rkey in [#27, 'Q'] then begin
 					DemoStop(true);
 					InputKeyPressed := rkey;
@@ -787,6 +803,7 @@ procedure DemoInputUpdate(expectedPitCount: word; isGameplaySensitive: boolean);
 		InputUpdate;
 
 	AfterInput:
+		{ Handle recording board splits. }
 		if (DemoCurrentMode = DModePlay) or (DemoCurrentMode = DModeRecord) then begin
 			if DemoInEndgame then begin
 				if World.Info.Health > 0 then
@@ -812,7 +829,7 @@ procedure DemoInputUpdate(expectedPitCount: word; isGameplaySensitive: boolean);
 			end;
 		end;
 
-		{ Recording mode. }
+		{ Handle demo recording inputs. }
 		if (DemoCurrentMode = DModeRecord) and (not DemoDoIgnoreKeypresses) then begin
 
 			{ Update the demo pit counter??? }
@@ -848,8 +865,7 @@ procedure DemoInputUpdate(expectedPitCount: word; isGameplaySensitive: boolean);
 				end;
 			end;
 
-			{ If something has changed, record it. }
-
+			{ Record any changed inputs. }
 			if (DemoCurrentCommand.deltaX <> InputDeltaX)
 			or (DemoCurrentCommand.deltaY <> InputDeltaY)
 			or (DemoCurrentCommand.shiftPressed <> InputShiftPressed)
