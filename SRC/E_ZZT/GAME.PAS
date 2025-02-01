@@ -53,7 +53,7 @@ interface
 	procedure TransitionDrawBoardChange;
 	procedure GameUpdateSidebar;
 	procedure GamePlayLoop(boardChanged: boolean);
-	procedure DisplayMessage(time: integer; message: string);
+	procedure DisplayMessage(ticks: integer; message: string);
 	procedure BoardEnter;
 	procedure BoardPassageTeleport(x, y: integer);
 {$IFDEF ZDEMOVAL}
@@ -571,6 +571,26 @@ procedure WorldSave(filename, extension: TString50);
 		version: integer;
 	label OnError;
 	begin
+
+		{ If a demo is being recorded, save the demo too. }
+		if DemoIsRecording then begin
+			SaveCopyDemoFiles(filename);
+		end;
+
+		{ If a demo is being played, don't save the game again,
+		  as usually you don't want it to be doing file ops when
+		  replaying a demo.
+		  If we're replaying a demo, this might also be the end of
+		  one segment, meaning the rest of the gameplay starts with
+		  a restore. Call DemoRestartHere to check if that's the
+		  case and to set GameRestartNeeded if so.}
+		if DemoIsPlaying then begin
+			{BoardClose;
+			BoardOpen(World.Info.CurrentBoard);}
+			DemoRestartHere;
+			Exit;
+		end;
+
 		BoardClose;
 		VideoWriteText(63, 5, $1F, 'Saving...');
 
@@ -650,6 +670,7 @@ procedure GameWorldSave(prompt: TString50; var filename: TString50; extension: T
 function GameWorldLoad(extension: TString50): boolean;
 	var
 		entryName: string;
+		demoOK: boolean;
 	begin
 		{ As directory listings can take up a lot of memory, }
 		{ free IoTmpBuf for the duration - the data will be }
@@ -665,9 +686,12 @@ function GameWorldLoad(extension: TString50): boolean;
 		GetMem(IoTmpBuf, IoTmpBufSize);
 
 		if Length(entryName) > 0 then begin
-			if WorldLoad(entryName, extension, false) then
-				GameWorldLoad := true
-			else begin
+			if WorldLoad(entryName, extension, false) then begin
+				GameWorldLoad := true;
+				{ Try to resume recording a demo if the save game comes with one. 
+				  TODO: Only if a savegame. }
+				demoOK := DemoRestoreRecord(entryName);
+			end else begin
 				WorldCreate;
 				PauseOnError;
 				TransitionDrawToFill(#219, $44);
@@ -846,6 +870,7 @@ procedure GameDemoUpdateSidebar;
 			DrawHighlight(x, y + 1, $70, sv, cond and InputShiftPressed);
 		end;
 	begin
+		{TODO? Instead of file position, use relative time?}
 		Str(((DemoFilePos * 100) div DemoFileSize), numStr);
 		VideoWriteText(72, 16, $1E, numStr + '% ');
 
@@ -937,7 +962,7 @@ procedure GameUpdateSidebar;
 		end;
 	end;
 
-procedure DisplayMessage(time: integer; message: string);
+procedure DisplayMessage(ticks: integer; message: string);
 	begin
 		if GetStatIdAt(0, 0) <> -1 then begin
 			RemoveStat(GetStatIdAt(0, 0));
@@ -946,7 +971,7 @@ procedure DisplayMessage(time: integer; message: string);
 
 		if Length(message) <> 0 then begin
 			AddStat(0, 0, E_MESSAGE_TIMER, 0, 1, StatTemplateDefault);
-			Board.Stats[Board.StatCount].P2 := Time div (TickTimeDuration + 1);
+			Board.Stats[Board.StatCount].P2 := ticks div (TickTimeDuration + 1);
 			Board.Info.Message := message;
 {$IFDEF UISCBACK}
 			ScrollbackAppend(message);
@@ -1244,6 +1269,14 @@ procedure GamePlayLoop(boardChanged: boolean);
 		end;
 	begin
 		{$IFDEF BASICSYS} VideoLockScreenUpdate; {$ENDIF}
+
+		{ We've started playing; disable GameRestartNeeded so that when we quit,
+		  the title screen handler won't immediately restart the game.
+		  If we're running a demo and that demo includes a restore from
+		  a saved game, it will set GameRestartNeeded when that event occurs.
+		}
+		GameRestartNeeded := false;
+
 		GameDrawSidebar;
 		GameUpdateSidebar;
 		{$IFDEF BASICSYS} VideoUnlockScreenUpdate(60, 0, 79, 24); {$ENDIF}
@@ -1410,9 +1443,14 @@ procedure GamePlayLoop(boardChanged: boolean);
 					SoundIdle(IMUntilPit);
 				end;
 			end;
-		until GamePlayExitRequested;
 
-		DemoStop(false);
+			{ If the player finished a save game operation and we're playing
+			  back a demo, it's possible that GameRestartNeeded was set. If
+			  so, exit so we can start this procedure from the top. (Is this
+			  better than a goto?) }
+
+			if GameRestartNeeded then Exit;
+		until GamePlayExitRequested;
 
 		SoundClearQueue;
 
@@ -1423,6 +1461,8 @@ procedure GamePlayLoop(boardChanged: boolean);
 		end else if GameStateElement = E_MONITOR then begin
 			SidebarClearLine(5);
 		end;
+
+		DemoStop(false);
 
 		Board.Tiles[Board.Stats[0].X][Board.Stats[0].Y].Element := E_PLAYER;
 		Board.Tiles[Board.Stats[0].X][Board.Stats[0].Y].Color := ElementDefs[E_PLAYER].Color;
@@ -1438,8 +1478,8 @@ function GameDemoStartRecord: boolean;
 		filename := World.Info.Name;
 		SidebarPromptFilename('Demo name?', '.ZZD', filename, PROMPT_ALPHANUM);
 		if (InputKeyPressed <> KEY_ESCAPE) and (Length(filename) <> 0) then begin
-			if DemoStartRecord(filename + '.ZZD') then begin
-				if DemoStartLogging(filename + '.ZZL') then begin
+			if DemoStartRecord(filename, '.ZZD') then begin
+				if DemoStartLogging(filename, '.ZZL') then begin
 					GameDemoStartRecord := true;
 				end else begin
 					DemoStop(true);
@@ -1457,8 +1497,8 @@ function GameDemoStartPlay: boolean;
 		filename := World.Info.Name;
 		SidebarPromptFilename('Demo name?', '.ZZD', filename, PROMPT_ALPHANUM);
 		if (InputKeyPressed <> KEY_ESCAPE) and (Length(filename) <> 0) then begin
-			if DemoStartPlay(filename + '.ZZD') then begin
-				if DemoStartLogging(filename + '.ZZL') then begin
+			if DemoStartPlay(filename, '.ZZD') then begin
+				if DemoStartLogging(filename, '.ZZL') then begin
 					GameDemoStartPlay := true;
 					if DemoFastForward then begin
 						SoundEnabled := false;
@@ -1472,6 +1512,8 @@ function GameDemoStartPlay: boolean;
 	end;
 
 {$IFDEF ZDEMOVAL}
+{TODO: Make this a function that returns score. Take a parameter
+ indicating whether we want to save the end state to a SAV file.}
 procedure GameValidateRun;
 	begin
 		GameTitleExitRequested := false;
@@ -1482,9 +1524,16 @@ procedure GameValidateRun;
 		DemoStopOnEndgame := false;
 		SoundEnabled := false;
 
-		if DemoStartPlay(StartupWorldFileName + '.ZZD') then begin
-			if DemoStartLogging(StartupWorldFileName + '.ZZL') then begin
-				if WorldLoad(StartupWorldFileName, '.ZZT', false) then begin
+		{ We'll return the player's score as the exit code (error level).
+		  If the demo can't be played, that's zero points. }
+
+		ExitCode := 0;
+
+		if DemoStartPlay(StartupWorldFileName, '.ZZD') then begin
+			if DemoStartLogging(StartupWorldFileName, '.ZZL') then begin
+				{ TODO: If the world doesn't exist, then exit straight away,
+			 	  don't play back a demo on the IO error screen.}
+				if WorldLoad(DemoGetWorldName, '.ZZT', false) then begin
 					ReturnBoardId := World.Info.CurrentBoard;
 
 					GameStateElement := E_PLAYER;
@@ -1600,9 +1649,16 @@ procedure GameTitleLoop;
 				end;
 
 				if startPlay then begin
-					GameStateElement := E_PLAYER;
-					GamePaused := true;
-					GamePlayLoop(true);
+					GameRestartNeeded := true;
+					{ Needed to make the transition only play once
+					  when playing back a demo. }
+					boardChanged := true;
+					while GameRestartNeeded do begin
+						GameStateElement := E_PLAYER;
+						GamePaused := true;
+						GamePlayLoop(boardChanged);
+						boardChanged := false;
+					end;
 					boardChanged := true;
 				end;
 			until boardChanged or GameTitleExitRequested;

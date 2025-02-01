@@ -58,7 +58,8 @@ interface
 
 implementation
 uses Dos, GameIo, Cheats, GameSh, FileSel, FileSys, ExtMem,
-GameConf, ZVideo, Sounds, TimerSys, Keys, ZInput, Elements, Oop, Game, Sidebar;
+GameConf, ZVideo, Sounds, TimerSys, Keys, ZInput, Elements, Oop, Game, Sidebar,
+ZDemo;
 
 type
 	TLLEditAction = (
@@ -2824,6 +2825,11 @@ procedure HighScoresAdd(score: integer);
 		name: TSmallString;
 		i, listPos: integer;
 	begin
+		{ Don't record the player inputting their name as we can't
+		  be sure the box will show up next time. }
+		if DemoIsRecording then
+			DemoIgnoreKeypresses;
+
 		listPos := 1;
 		while (listPos <= HIGH_SCORE_COUNT) and (score < HighScoreList[listPos].Score) do
 			Inc(listPos);
@@ -2866,6 +2872,9 @@ procedure HighScoresAdd(score: integer);
                         HighScoreList[listPos].Name := name;
                         HighScoresSave;
 
+			if DemoIsRecording then
+				DemoAddPlayerName(name);
+
 			TextWindowDrawClose(textWindow);
 			TransitionDrawToBoard;
 			TextWindowFree(textWindow);
@@ -2873,6 +2882,9 @@ procedure HighScoresAdd(score: integer);
 			HighScoresDisplay(listPos);
 {$ENDIF}
 		end;
+
+		if DemoIsRecording then
+			DemoReenableKeypresses;
 	end;
 
 function EditorAppendSizeToLine(s: TSmallString; dl: word): TSmallString;

@@ -46,7 +46,7 @@ interface
 		BOARD_WIDTH = 60;
 		BOARD_HEIGHT = 25;
 		WORLD_FILE_HEADER_SIZE = 512;
-		HIGH_SCORE_COUNT = 30;
+		HIGH_SCORE_COUNT = 50;
 		TORCH_DURATION = 200;
 		TORCH_DX = 8;
 		TORCH_DY = 5;
@@ -181,7 +181,7 @@ interface
 			StartPlayerX: byte;
 			StartPlayerY: byte;
 			TimeLimitSec: integer;
-			unk1: array[70 .. 85] of byte;
+			unkPad: array[70 .. 85] of byte;
 		end;
 		TWorldInfo = record
 			Ammo: integer;
@@ -332,6 +332,7 @@ interface
 		CurrentTick: integer;
 		CurrentStatTicked: integer;
 		GamePaused: boolean;
+		GameRestartNeeded: boolean;
 		TickTimeCounter: integer;
 
 		ForceDarknessOff: boolean;
