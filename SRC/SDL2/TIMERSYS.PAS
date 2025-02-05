@@ -57,7 +57,7 @@ interface
 	procedure SoundInitFreqTable(highQuality: boolean);
 
 implementation
-uses AudioSim, CTypes, Math, Sounds;
+uses ZDemo, AudioSim, CTypes, Math, Sounds;
 
 const
 	PIT_SPEED_MS = 55;
@@ -147,6 +147,7 @@ function PitTimerCallback(interval: Uint32; param: Pointer): Uint32; cdecl;
 	begin
 		Inc(TimerTicks);
 		TimerHsecs := TimerHsecs + (PIT_SPEED_MS div 5);
+		DemoOnPitTick;
 
 		{ Emulate DOS sound buffer. }
 		if not SoundEnabled then begin
