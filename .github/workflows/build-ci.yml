@@ -21,7 +21,7 @@ jobs:
       - name: Install Win64 FPC units
         run: sudo sh -c "cd /usr/lib/x86_64-linux-gnu/ && curl https://asie.pl/files/fpc-3.2.2-units-win64.tar.gz | tar xzvf -"
       - name: Download Win64 syslibs
-        run: sudo sh -c "curl https://asie.pl/files/czoo-syslibs-20220703.tar.gz | tar xzvf -"
+        run: sudo sh -c "curl https://asie.pl/files/czoo-syslibs-20250205.tar.gz | tar xzvf -"
       - name: Build
         run: ./build.sh .github/build-ci-windows.releases
       - name: Archive artifact
@@ -68,7 +68,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ClassicZoo (Linux, AArch64)
-          path: OUTPUT/zztlin64.zip
+          path: OUTPUT/zztlina64.zip
 
   build_macos:
     if: false
