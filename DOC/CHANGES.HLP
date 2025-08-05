@@ -6,6 +6,18 @@ Legend:
 - Removals          / Bugfixes
 [] Platform         {} Engine
 
+$< ClassicZoo 4.41 >
+
++ [Windows] Fullscreen now available.
++ [SDL2] Custom charset and palettes
+  are now saved and reloaded on launch.
+  (Only if in the same directory as ZZT.)
+* [SDL2] Fullscreen is now Borderless
+  Windowed instead of Exclusive.
+* [SDL2] Fullscreen is now the default
+  on first launch.
+* [Windows] Updated SDL2 to 2.32.8.
+
 $< ClassicZoo 4.40 >
 
 * [DOS] Replaced /NOSNOW and /SAFEV

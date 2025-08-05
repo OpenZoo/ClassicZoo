@@ -71,6 +71,10 @@ interface
 {$ENDIF}
 	function VideoIsCharsetCustom: boolean;
 	function VideoIsPaletteCustom: boolean;
+	function VideoGetCharsetFileName: string;
+	function VideoGetPaletteFileName: string;
+	procedure VideoSetCharsetFileName(filename: string);
+	procedure VideoSetPaletteFileName(filename: string);
 	function VideoSetCharset(data: pointer; height: integer): boolean;
 	function VideoSetPaletteColor(idx, r, g, b: byte): boolean;
 	procedure VideoLoadCharsetDialog;
@@ -151,6 +155,8 @@ var
 	installed: boolean;
 	usingCustomCharset: boolean;
 	usingCustomPalette: boolean;
+	customCharsetFileName: string;
+	customPaletteFileName: string;
 	windowedLastWidth, windowedLastHeight: Int32;
 
 { macOS expects the SDL2 framework symbols. }
@@ -375,7 +381,7 @@ procedure VideoSetSDLWindowed(value: boolean);
 				SDL_GetDesktopDisplayMode(SDL_GetWindowDisplayIndex(window), @mode);
 				SDL_SetWindowSize(window, mode.w, mode.h);
 				AfterSetWindowSize;
-				SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN);
+				SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
 				AfterSetWindowSize;
 				windowed := false;
 			end else begin
@@ -549,6 +555,7 @@ procedure VideoLoadCharsetFromFile(filename: string);
 	begin
 		if filename = '' then begin
 			VideoSetCharset(nil, 14);
+			customCharsetFileName := '';
 			exit;
 		end;
 
@@ -556,15 +563,18 @@ procedure VideoLoadCharsetFromFile(filename: string);
 		if charsetLen >= 5027 then begin
 			if CompareMem(charsetData + 8, @FONT_MANIA_ID_STRING[1], Length(FONT_MANIA_ID_STRING)) then begin
 				VideoSetCharset(charsetData + 1442, 14);
+				customCharsetFileName := filename;
 				goto FinishLoadCharset;
 			end;
 		end else if ((charsetLen and $FF) = 0) and (charsetLen > 0) then begin
 			VideoSetCharset(charsetData, charsetLen shr 8);
+			customCharsetFileName := filename;
 			goto FinishLoadCharset;
 		end;
 
 		{ Fallback }
 		VideoSetCharset(nil, 14);
+		customCharsetFileName := '';
 FinishLoadCharset:
 		if charsetLen > 0 then
 			FreeMem(charsetData, charsetLen);
@@ -610,6 +620,7 @@ procedure VideoLoadPaletteFromFile(filename: string);
 	begin
 		if filename = '' then begin
 			VideoSetPalette(EGA_PALETTE, false);
+			customPaletteFileName := '';
 			exit;
 		end;
 
@@ -623,6 +634,7 @@ procedure VideoLoadPaletteFromFile(filename: string);
 					or (((paletteDataArr^[(EGA_PALETTE_LUT[i] * 3) + 1] and $3F) * 255 div 63) shl 8)
 					or (((paletteDataArr^[(EGA_PALETTE_LUT[i] * 3) + 2] and $3F) * 255 div 63));
 			VideoSetPalette(palette, true);
+			customPaletteFileName := filename;
 		end else if paletteLen = 48 then begin
 			{ .PAL file }
 			for i := 0 to 15 do
@@ -631,9 +643,11 @@ procedure VideoLoadPaletteFromFile(filename: string);
 					or (((paletteDataArr^[(i * 3) + 1] and $3F) * 255 div 63) shl 8)
 					or (((paletteDataArr^[(i * 3) + 2] and $3F) * 255 div 63));
 			VideoSetPalette(palette, true);
+			customPaletteFileName := filename;
 		end else begin
 			{ Fallback }
 			VideoSetPalette(EGA_PALETTE, false);
+			customPaletteFileName := '';
 		end;
 
 		if paletteLen > 0 then
@@ -942,6 +956,16 @@ function VideoIsPaletteCustom: boolean;
 		VideoIsPaletteCustom := usingCustomPalette;
 	end;
 
+function VideoGetPaletteFileName: string;
+	begin
+		VideoGetPaletteFileName := customPaletteFileName;
+	end;
+
+procedure VideoSetPaletteFileName(filename: string);
+	begin
+		customPaletteFileName := filename;
+	end;
+
 function VideoSetPaletteColor(idx, r, g, b: byte): boolean;
 	begin
 		SDL_LockMutex(eventMutex);
@@ -953,6 +977,16 @@ function VideoSetPaletteColor(idx, r, g, b: byte): boolean;
 		SDL_UnlockMutex(eventMutex);
 		VideoForcePlayfieldRedraw;
 		VideoSetPaletteColor := true;
+	end;
+
+function VideoGetCharsetFileName: string;
+	begin
+		VideoGetCharsetFileName := customCharsetFileName;
+	end;
+
+procedure VideoSetCharsetFileName(filename: string);
+	begin
+		customCharsetFileName := filename;
 	end;
 
 function VideoSetCharset(data: pointer; height: integer): boolean;
@@ -1012,12 +1046,12 @@ function VideoInstall(mode: integer; charsetData: PTCharsetData; charsetHeight: 
 		VideoCurrentMode := mode;
 
 		if not installed then begin
-			windowed := true;
-
 			window := SDL_CreateWindow('%NAME% %VERSION%',
 				SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
 				640, {$IFDEF E_SUPERZ}400{$ELSE}{$IFDEF SHIFTJIS}400{$ELSE}350{$ENDIF}{$ENDIF},
 				SDL_WINDOW_RESIZABLE or SDL_WINDOW_ALLOW_HIGHDPI);
+			if not windowed then
+				SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
 		end;
 
 {$IFDEF SHIFTJIS}
@@ -1044,6 +1078,12 @@ function VideoInstall(mode: integer; charsetData: PTCharsetData; charsetHeight: 
 		for i := 0 to 15 do
 			palette[i] := EGA_PALETTE[i];
 		usingCustomPalette := false;
+
+		if VideoGetCharsetFileName <> '' then
+			VideoLoadCharsetFromFile(VideoGetCharsetFileName);
+
+		if VideoGetPaletteFileName <> '' then
+			VideoLoadPaletteFromFile(VideoGetPaletteFileName);
 
 		if not installed then begin
 			mainThreadSdlChangesMutex := SDL_CreateMutex;
