@@ -1,3 +1,6 @@
 [submodule "HEADERS/SDL2"]
 	path = HEADERS/SDL2
 	url = https://github.com/PascalGameDevelopment/SDL2-for-Pascal
+[submodule "HEADERS/SDL3"]
+	path = HEADERS/SDL3
+	url = https://github.com/PascalGameDevelopment/SDL3-for-Pascal

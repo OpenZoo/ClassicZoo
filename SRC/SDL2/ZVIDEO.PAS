@@ -474,11 +474,12 @@ procedure LoadCharsetFromBMP(var tex: TCharsetTexture; path: string; totalTiles:
 		FreeCharsetTexture(tex);
 	end;
 
-procedure LoadCharsetFromByteArray(var tex: TCharsetTexture; chByteArray: array of byte; chSizeBytes: longint);
+procedure LoadCharsetFromByteArray(var tex: TCharsetTexture; chData: pointer; chSizeBytes: longint);
 	var
 		surfaceOld, surface: PSDL_Surface;
 		palette: array[0 .. 1] of TSDL_Color;
 		colors: array[0 .. 256*128-1] of byte;
+		chByteArray: array[0 .. 4095] of byte;
 		i, ix, iy: Int32;
 		iyo: Uint32;
 		ib: byte;
@@ -489,6 +490,8 @@ procedure LoadCharsetFromByteArray(var tex: TCharsetTexture; chByteArray: array 
 		tex.valid := false;
 		if (tex.charHeight < 8) or (tex.charHeight > 16) then exit;
 
+		Move(chData^, chByteArray, chSizeBytes);
+	
 		for i := 0 to 255 do
 			for iy := 0 to (tex.charHeight - 1) do begin
 				ib := chByteArray[i * tex.charHeight + iy];
@@ -965,7 +968,7 @@ function VideoSetCharset(data: pointer; height: integer): boolean;
 		FreeCharsetTexture(charsetTexture);
 
 		if data <> nil then begin
-			LoadCharsetFromByteArray(charsetTexture, PByteArray(data)^, height shl 8);
+			LoadCharsetFromByteArray(charsetTexture, data, height shl 8);
 			if charsetTexture.valid then begin
 				VideoSetCharset := true;
 				usingCustomCharset := true;
@@ -973,7 +976,7 @@ function VideoSetCharset(data: pointer; height: integer): boolean;
 			end;
 		end;
 
-		LoadCharsetFromByteArray(charsetTexture, F_ASCIIData, F_ASCIISize);
+		LoadCharsetFromByteArray(charsetTexture, @F_ASCIIData, F_ASCIISize);
 		usingCustomCharset := false;
 		if not charsetTexture.valid then
 			RunError(217);
@@ -1030,11 +1033,11 @@ function VideoInstall(mode: integer; charsetData: PTCharsetData; charsetHeight: 
 			FreeCharsetTexture(charsetTexture);
 		end;
 		if charsetHeight > 0 then begin
-			LoadCharsetFromByteArray(charsetTexture, PByteArray(charsetData)^, charsetHeight * 256);
+			LoadCharsetFromByteArray(charsetTexture, charsetData, charsetHeight * 256);
 			usingCustomCharset := false;
 		end;
 		if not charsetTexture.valid then begin
-			LoadCharsetFromByteArray(charsetTexture, F_ASCIIData, F_ASCIISize);
+			LoadCharsetFromByteArray(charsetTexture, @F_ASCIIData, F_ASCIISize);
 			usingCustomCharset := false;
 		end;
 {$ENDIF}
