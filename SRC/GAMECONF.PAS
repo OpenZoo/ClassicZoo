@@ -1000,7 +1000,6 @@ procedure GameConfigInit;
 		Inc(i);
 {$ENDIF}
 {$IFDEF SDL2}
-{$IFNDEF WINDOWS}
 		with ConfigEntries[i] do begin
 			Category := CCFrontend;
 			Key := 'FVidWin';
@@ -1010,7 +1009,6 @@ procedure GameConfigInit;
 			ShowValue := ConfigFullscreenShowValue;
 		end;
 		Inc(i);
-{$ENDIF}
 
 		with ConfigEntries[i] do begin
 			Category := CCFrontend;
@@ -1144,6 +1142,10 @@ function GameConfigLoad: boolean;
 {$IFDEF SDL2}
 						end else if k = 'FInputID' then begin
 							InputSetControllerID(s);
+						end else if k = 'FChrFile' then begin
+							VideoSetCharsetFileName(s);
+						end else if k = 'FPalFile' then begin
+							VideoSetPaletteFileName(s);
 {$ENDIF}
 						end else begin
 							Val(s, v, code);
@@ -1182,6 +1184,8 @@ function GameConfigSave: boolean;
 		end;
 {$IFDEF SDL2}
 		WriteLn(f, 'Input=' + InputGetControllerID);
+		WriteLn(f, 'FChrFile=' + VideoGetCharsetFileName);
+		WriteLn(f, 'FPalFile=' + VideoGetPaletteFileName);
 {$ENDIF} 
 		for i := 1 to ConfigEntryCount do with ConfigEntries[i] do begin
 			{$IFNDEF FPC} if Length(Key) > 0 then begin {$ENDIF}
